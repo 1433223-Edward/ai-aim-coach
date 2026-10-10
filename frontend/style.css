@@ -1,0 +1,147 @@
+/* 清除浏览器默认边距，避免训练区域出现意外偏移。 */
+* {
+    box-sizing: border-box;
+}
+
+html,
+body {
+    margin: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+}
+
+body {
+    background: #111;
+}
+
+/*
+    Build 0 暂时直接让训练区域占满浏览器窗口。
+
+    所以当前：
+    trainerWidth = 浏览器可视宽度
+    trainerHeight = 浏览器可视高度
+*/
+#trainer-area {
+    position: relative;
+
+    width: 100vw;
+    height: 100vh;
+
+    background: #1a1a1a;
+
+    /* 不允许用户选中文字影响训练。 */
+    user-select: none;
+
+    cursor: pointer;
+}
+
+
+/*
+    虚拟准星。
+
+    left / top 将由 JavaScript 控制。
+*/
+#crosshair {
+    position: absolute;
+
+    width: 16px;
+    height: 16px;
+
+    border: 2px solid white;
+    border-radius: 50%;
+
+    /*
+        坐标代表准星中心位置，
+        所以需要向左、向上偏移自身的一半。
+    */
+    transform: translate(-50%, -50%);
+
+    pointer-events: none;
+}
+
+
+#start-message {
+    position: absolute;
+
+    left: 50%;
+    top: 50%;
+
+    transform: translate(-50%, -50%);
+
+    color: white;
+    font-family: Arial, sans-serif;
+    font-size: 20px;
+
+    pointer-events: none;
+}
+/*
+    Flick Test 当前目标。
+
+    第一版固定大小。
+    后续如果发现 target size 会影响实验，
+    再把它升级成 Session 参数。
+*/
+#target {
+    position: absolute;
+
+    width: 50px;
+    height: 50px;
+
+    background: #e74c3c;
+    border-radius: 50%;
+
+    /*
+        targetX / targetY 表示圆心，
+        而不是左上角。
+    */
+    transform: translate(-50%, -50%);
+
+    pointer-events: none;
+
+    /* 进入训练前先隐藏。 */
+    display: none;
+}
+
+
+/* ==========================================================
+   AI Experiment Planner
+   ========================================================== */
+
+   .agent-panel {
+    max-width: 900px;
+    margin: 32px auto;
+    padding: 24px;
+
+    border: 1px solid #ccc;
+    border-radius: 8px;
+}
+
+.agent-panel textarea {
+    width: 100%;
+    box-sizing: border-box;
+
+    margin-top: 12px;
+    padding: 12px;
+
+    resize: vertical;
+}
+
+.agent-panel button {
+    margin-top: 12px;
+    padding: 10px 16px;
+
+    cursor: pointer;
+}
+
+.agent-result {
+    margin-top: 24px;
+}
+
+.agent-result pre {
+    white-space: pre-wrap;
+    word-wrap: break-word;
+
+    font-family: inherit;
+    line-height: 1.6;
+}

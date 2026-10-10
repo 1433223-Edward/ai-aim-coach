@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+
+    <!--
+        viewport 用来保证浏览器按真实可视区域显示页面，
+        暂时不做复杂缩放映射。
+    -->
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>AI Aim Coach - Build 0</title>
+
+    <link rel="stylesheet" href="./style.css">
+</head>
+
+<body>
+
+    <!--
+        trainer-area 是当前整个训练世界。
+
+        Build 0 阶段：
+        DOM 训练区域尺寸 = Trainer Coordinate System。
+
+        后续如果需要固定逻辑坐标系，
+        再在这一层之上增加映射。
+    -->
+    <main id="trainer-area">
+
+        <!-- 当前需要命中的目标 -->
+        <div id="target"></div>
+
+        <!--
+            这是我们自己绘制的虚拟准星。
+            真正的系统鼠标进入 Pointer Lock 后会被隐藏。
+        -->
+        <div id="crosshair"></div>
+
+        <div id="start-message">
+            点击训练区域开始
+        </div>
+
+    </main>
+    <!-- ========================================================
+     AI Experiment Planner
+
+     当前只负责：
+     用户 Goal → Backend Agent → Recommendation
+
+     不参与鼠标采集和 Target Interaction。
+========================================================= -->
+
+    <section id="agentPanel" class="agent-panel">
+
+        <h2>AI Experiment Planner</h2>
+
+        <p>
+            告诉 AI Aim Coach 你下一轮训练想解决什么问题。
+        </p>
+
+        <textarea
+            id="agentGoal"
+            rows="4"
+            placeholder="例如：我想提高 Flick 速度，但不希望明显牺牲稳定性。"
+        ></textarea>
+
+        <button id="generatePlanButton">
+            生成下一轮实验建议
+        </button>
+
+        <p id="agentStatus"></p>
+
+        <div
+            id="agentResult"
+            class="agent-result"
+            hidden
+        >
+            <h3>Recommendation</h3>
+
+            <pre id="agentAnswer"></pre>
+
+            <h3>Tools Used</h3>
+
+            <p id="agentTools"></p>
+        </div>
+
+    </section>
+
+
+    <script src="./trainer.js"></script>
+
+</body>
+</html>

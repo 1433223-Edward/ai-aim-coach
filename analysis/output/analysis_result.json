@@ -1,0 +1,527 @@
+{
+  "schema_version": "0.1",
+  "analysis_type": "sensitivity_analysis",
+  "experiment": {
+    "sensitivities": [
+      0.8,
+      1,
+      1.2
+    ],
+    "session_count": 9,
+    "attempt_count": 180
+  },
+  "sensitivity_profiles": [
+    {
+      "sensitivity": 0.8,
+      "session_count": 3,
+      "attempt_count": 60,
+      "metrics": {
+        "final_hit_time_ms": {
+          "sample_count": 60,
+          "mean": 901.9000000019868,
+          "median": 851.6000000238419,
+          "std": 196.77759277305958
+        },
+        "miss_count": {
+          "sample_count": 60,
+          "mean": 0.16666666666666666,
+          "median": 0.0,
+          "std": 0.37582301400141443
+        },
+        "first_click_error_px": {
+          "sample_count": 60,
+          "mean": 16.470956351503098,
+          "median": 13.408701189034957,
+          "std": 10.980388577496877
+        },
+        "path_efficiency": {
+          "sample_count": 60,
+          "mean": 0.8168870314931661,
+          "median": 0.8754091470340883,
+          "std": 0.1601147425657732
+        }
+      },
+      "miss_behavior": {
+        "miss_attempt_count": 10,
+        "attempt_count": 60,
+        "miss_attempt_rate": 0.16666666666666666
+      },
+      "session_consistency": {
+        "sessions": [
+          {
+            "session_id": "009c7e92-3aef-40ff-972c-131b6d9161a0",
+            "sensitivity": 0.8,
+            "experiment_order": null,
+            "sensitivity_repeat": null,
+            "attempt_count": 20,
+            "metrics": {
+              "final_hit_time_ms": {
+                "sample_count": 20,
+                "mean": 835.5050000011921,
+                "median": 823.4499999880791,
+                "std": 135.80234660409457
+              },
+              "miss_count": {
+                "sample_count": 20,
+                "mean": 0.1,
+                "median": 0.0,
+                "std": 0.30779350562554625
+              },
+              "first_click_error_px": {
+                "sample_count": 20,
+                "mean": 16.19849198294112,
+                "median": 13.677754291364081,
+                "std": 12.556632740733054
+              },
+              "path_efficiency": {
+                "sample_count": 20,
+                "mean": 0.8327842473695092,
+                "median": 0.8791643165454508,
+                "std": 0.1327547385688648
+              }
+            },
+            "miss_behavior": {
+              "miss_attempt_count": 2,
+              "attempt_count": 20,
+              "miss_attempt_rate": 0.1
+            }
+          },
+          {
+            "session_id": "c4a5441e-35d9-4b60-9a44-dbcd116945ff",
+            "sensitivity": 0.8,
+            "experiment_order": null,
+            "sensitivity_repeat": null,
+            "attempt_count": 20,
+            "metrics": {
+              "final_hit_time_ms": {
+                "sample_count": 20,
+                "mean": 914.5549999982119,
+                "median": 889.4000000059605,
+                "std": 196.28818897544255
+              },
+              "miss_count": {
+                "sample_count": 20,
+                "mean": 0.1,
+                "median": 0.0,
+                "std": 0.30779350562554625
+              },
+              "first_click_error_px": {
+                "sample_count": 20,
+                "mean": 14.356357708954253,
+                "median": 11.055625790210659,
+                "std": 10.764293676361678
+              },
+              "path_efficiency": {
+                "sample_count": 20,
+                "mean": 0.8051436084689881,
+                "median": 0.874498398831268,
+                "std": 0.1979222278925016
+              }
+            },
+            "miss_behavior": {
+              "miss_attempt_count": 2,
+              "attempt_count": 20,
+              "miss_attempt_rate": 0.1
+            }
+          },
+          {
+            "session_id": "e9baad0d-56fe-4449-bb57-119102138e8e",
+            "sensitivity": 0.8,
+            "experiment_order": null,
+            "sensitivity_repeat": null,
+            "attempt_count": 20,
+            "metrics": {
+              "final_hit_time_ms": {
+                "sample_count": 20,
+                "mean": 955.6400000065565,
+                "median": 900.9500000178814,
+                "std": 235.41451773098194
+              },
+              "miss_count": {
+                "sample_count": 20,
+                "mean": 0.3,
+                "median": 0.0,
+                "std": 0.47016234598162726
+              },
+              "first_click_error_px": {
+                "sample_count": 20,
+                "mean": 18.858019362613923,
+                "median": 21.592607001898152,
+                "std": 9.490850290388156
+              },
+              "path_efficiency": {
+                "sample_count": 20,
+                "mean": 0.812733238641001,
+                "median": 0.881354985833819,
+                "std": 0.14960753889062967
+              }
+            },
+            "miss_behavior": {
+              "miss_attempt_count": 6,
+              "attempt_count": 20,
+              "miss_attempt_rate": 0.3
+            }
+          }
+        ]
+      }
+    },
+    {
+      "sensitivity": 1,
+      "session_count": 3,
+      "attempt_count": 60,
+      "metrics": {
+        "final_hit_time_ms": {
+          "sample_count": 60,
+          "mean": 894.735000004371,
+          "median": 887.9000000059605,
+          "std": 147.592517178466
+        },
+        "miss_count": {
+          "sample_count": 60,
+          "mean": 0.18333333333333332,
+          "median": 0.0,
+          "std": 0.39020492949942304
+        },
+        "first_click_error_px": {
+          "sample_count": 60,
+          "mean": 17.279135526108828,
+          "median": 15.436158481663135,
+          "std": 11.442098484849966
+        },
+        "path_efficiency": {
+          "sample_count": 60,
+          "mean": 0.8138919425028617,
+          "median": 0.8660223009615553,
+          "std": 0.1487249142729236
+        }
+      },
+      "miss_behavior": {
+        "miss_attempt_count": 11,
+        "attempt_count": 60,
+        "miss_attempt_rate": 0.18333333333333332
+      },
+      "session_consistency": {
+        "sessions": [
+          {
+            "session_id": "3a05fa54-a236-4484-b783-340637046e6b",
+            "sensitivity": 1,
+            "experiment_order": null,
+            "sensitivity_repeat": null,
+            "attempt_count": 20,
+            "metrics": {
+              "final_hit_time_ms": {
+                "sample_count": 20,
+                "mean": 939.209999999404,
+                "median": 926.1999999880791,
+                "std": 142.66128048135064
+              },
+              "miss_count": {
+                "sample_count": 20,
+                "mean": 0.1,
+                "median": 0.0,
+                "std": 0.30779350562554625
+              },
+              "first_click_error_px": {
+                "sample_count": 20,
+                "mean": 12.274283105313884,
+                "median": 9.949106426402468,
+                "std": 8.54810839197573
+              },
+              "path_efficiency": {
+                "sample_count": 20,
+                "mean": 0.8347760492619447,
+                "median": 0.865228449316899,
+                "std": 0.12067226123821272
+              }
+            },
+            "miss_behavior": {
+              "miss_attempt_count": 2,
+              "attempt_count": 20,
+              "miss_attempt_rate": 0.1
+            }
+          },
+          {
+            "session_id": "64d1812b-c55c-4167-ad51-f39625902c9d",
+            "sensitivity": 1,
+            "experiment_order": null,
+            "sensitivity_repeat": null,
+            "attempt_count": 20,
+            "metrics": {
+              "final_hit_time_ms": {
+                "sample_count": 20,
+                "mean": 848.0000000029802,
+                "median": 816.5,
+                "std": 138.02970313451758
+              },
+              "miss_count": {
+                "sample_count": 20,
+                "mean": 0.3,
+                "median": 0.0,
+                "std": 0.47016234598162726
+              },
+              "first_click_error_px": {
+                "sample_count": 20,
+                "mean": 20.44510757902118,
+                "median": 17.780767390541055,
+                "std": 13.94517308200848
+              },
+              "path_efficiency": {
+                "sample_count": 20,
+                "mean": 0.7852062090054888,
+                "median": 0.861980728873875,
+                "std": 0.17991777233330547
+              }
+            },
+            "miss_behavior": {
+              "miss_attempt_count": 6,
+              "attempt_count": 20,
+              "miss_attempt_rate": 0.3
+            }
+          },
+          {
+            "session_id": "e965e471-6145-4079-99ff-fb2f6b3b7e6d",
+            "sensitivity": 1,
+            "experiment_order": null,
+            "sensitivity_repeat": null,
+            "attempt_count": 20,
+            "metrics": {
+              "final_hit_time_ms": {
+                "sample_count": 20,
+                "mean": 896.9950000107289,
+                "median": 852.0000000298023,
+                "std": 154.44285086442363
+              },
+              "miss_count": {
+                "sample_count": 20,
+                "mean": 0.15,
+                "median": 0.0,
+                "std": 0.36634754853252327
+              },
+              "first_click_error_px": {
+                "sample_count": 20,
+                "mean": 19.11801589399142,
+                "median": 16.90437264817612,
+                "std": 9.926267948878795
+              },
+              "path_efficiency": {
+                "sample_count": 20,
+                "mean": 0.8216935692411517,
+                "median": 0.8817703819815419,
+                "std": 0.14270275808563113
+              }
+            },
+            "miss_behavior": {
+              "miss_attempt_count": 3,
+              "attempt_count": 20,
+              "miss_attempt_rate": 0.15
+            }
+          }
+        ]
+      }
+    },
+    {
+      "sensitivity": 1.2,
+      "session_count": 3,
+      "attempt_count": 60,
+      "metrics": {
+        "final_hit_time_ms": {
+          "sample_count": 60,
+          "mean": 917.5050000041723,
+          "median": 861.9000000059605,
+          "std": 176.9076101161933
+        },
+        "miss_count": {
+          "sample_count": 60,
+          "mean": 0.2,
+          "median": 0.0,
+          "std": 0.4434074531303296
+        },
+        "first_click_error_px": {
+          "sample_count": 60,
+          "mean": 19.47338740692672,
+          "median": 16.897667148754437,
+          "std": 13.70726547597364
+        },
+        "path_efficiency": {
+          "sample_count": 60,
+          "mean": 0.7656550370779945,
+          "median": 0.8248153587635774,
+          "std": 0.16964045348583906
+        }
+      },
+      "miss_behavior": {
+        "miss_attempt_count": 11,
+        "attempt_count": 60,
+        "miss_attempt_rate": 0.18333333333333332
+      },
+      "session_consistency": {
+        "sessions": [
+          {
+            "session_id": "29b96e1e-22cc-4bcf-9877-64e4efee28ed",
+            "sensitivity": 1.2,
+            "experiment_order": null,
+            "sensitivity_repeat": null,
+            "attempt_count": 20,
+            "metrics": {
+              "final_hit_time_ms": {
+                "sample_count": 20,
+                "mean": 908.0900000065565,
+                "median": 871.7999999821186,
+                "std": 182.0411199976768
+              },
+              "miss_count": {
+                "sample_count": 20,
+                "mean": 0.25,
+                "median": 0.0,
+                "std": 0.5501196042201808
+              },
+              "first_click_error_px": {
+                "sample_count": 20,
+                "mean": 18.411653863419986,
+                "median": 16.819873660040848,
+                "std": 10.315435311607692
+              },
+              "path_efficiency": {
+                "sample_count": 20,
+                "mean": 0.7406206759431528,
+                "median": 0.8274918556381392,
+                "std": 0.21157553030786075
+              }
+            },
+            "miss_behavior": {
+              "miss_attempt_count": 4,
+              "attempt_count": 20,
+              "miss_attempt_rate": 0.2
+            }
+          },
+          {
+            "session_id": "c3fc9365-e0a0-4f6e-b49a-f2871285bbfb",
+            "sensitivity": 1.2,
+            "experiment_order": null,
+            "sensitivity_repeat": null,
+            "attempt_count": 20,
+            "metrics": {
+              "final_hit_time_ms": {
+                "sample_count": 20,
+                "mean": 945.125,
+                "median": 895.4000000059605,
+                "std": 170.7132679855028
+              },
+              "miss_count": {
+                "sample_count": 20,
+                "mean": 0.1,
+                "median": 0.0,
+                "std": 0.30779350562554625
+              },
+              "first_click_error_px": {
+                "sample_count": 20,
+                "mean": 16.576972078957873,
+                "median": 10.984223149450441,
+                "std": 12.148812507496778
+              },
+              "path_efficiency": {
+                "sample_count": 20,
+                "mean": 0.8050686057476171,
+                "median": 0.8319245309420169,
+                "std": 0.12738672893609257
+              }
+            },
+            "miss_behavior": {
+              "miss_attempt_count": 2,
+              "attempt_count": 20,
+              "miss_attempt_rate": 0.1
+            }
+          },
+          {
+            "session_id": "c82bb833-bda4-4a2f-9924-b4592433c2e1",
+            "sensitivity": 1.2,
+            "experiment_order": null,
+            "sensitivity_repeat": null,
+            "attempt_count": 20,
+            "metrics": {
+              "final_hit_time_ms": {
+                "sample_count": 20,
+                "mean": 899.3000000059604,
+                "median": 828.6499999761581,
+                "std": 183.45592902893108
+              },
+              "miss_count": {
+                "sample_count": 20,
+                "mean": 0.25,
+                "median": 0.0,
+                "std": 0.44426165831931924
+              },
+              "first_click_error_px": {
+                "sample_count": 20,
+                "mean": 23.431536278402305,
+                "median": 17.943801277151596,
+                "std": 17.405012082942104
+              },
+              "path_efficiency": {
+                "sample_count": 20,
+                "mean": 0.7512758295432137,
+                "median": 0.749407516807381,
+                "std": 0.16080665544710837
+              }
+            },
+            "miss_behavior": {
+              "miss_attempt_count": 5,
+              "attempt_count": 20,
+              "miss_attempt_rate": 0.25
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "findings": [
+    {
+      "finding_type": "cross_session_comparison",
+      "metric": "path_efficiency",
+      "condition": {
+        "sensitivity": 1.2
+      },
+      "comparison": {
+        "sensitivities": [
+          0.8,
+          1
+        ]
+      },
+      "result": "consistently_lower",
+      "rule": "each_condition_session_median_below_all_comparison_session_medians",
+      "session_consistency": {
+        "supporting_sessions": 3,
+        "total_sessions": 3
+      },
+      "evidence": {
+        "condition_session_medians": [
+          0.8274918556381392,
+          0.8319245309420169,
+          0.749407516807381
+        ],
+        "comparison_session_medians": [
+          0.8791643165454508,
+          0.874498398831268,
+          0.881354985833819,
+          0.865228449316899,
+          0.861980728873875,
+          0.8817703819815419
+        ]
+      }
+    }
+  ],
+  "limitations": [
+    {
+      "code": "limited_sessions_per_condition",
+      "message": "Only a small number of sessions were collected per sensitivity."
+    },
+    {
+      "code": "single_player_fixed_environment",
+      "message": "Results describe one player under a fixed device and browser environment."
+    },
+    {
+      "code": "descriptive_analysis_only",
+      "message": "The current analysis is descriptive and does not include statistical significance testing."
+    }
+  ]
+}

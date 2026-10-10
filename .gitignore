@@ -1,0 +1,19 @@
+# Python
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# Environment / secrets
+.env
+
+# Runtime database
+data/aimcoach.db
+data/aimcoach.db-shm
+data/aimcoach.db-wal
+
+# IDE
+.vscode/
+
+# OS
+.DS_Store
+Thumbs.db
