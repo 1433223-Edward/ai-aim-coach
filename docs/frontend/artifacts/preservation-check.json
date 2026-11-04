@@ -1,0 +1,13 @@
+{
+  "clamp": true,
+  "renderCrosshair": true,
+  "spawnTarget": true,
+  "isTargetHit": true,
+  "downloadSessionAsJson": true,
+  "saveSessionToBackend": true,
+  "completeCurrentAttempt": true,
+  "retryPendingSessions": true,
+  "completeSession": true,
+  "mousemove": true,
+  "mousedown": true
+}

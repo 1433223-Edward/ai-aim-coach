@@ -1,0 +1,72 @@
+{
+  "source": "real browser settings create plus API readback",
+  "current": {
+    "ended": false,
+    "experiment_id": "38fc9758-2cda-4cde-81db-05ca0fe77666",
+    "protocol": {
+      "version": "1",
+      "session_schema_version": "0.1",
+      "target_count": 2,
+      "target_radius": 25,
+      "sensitivities": [
+        1.2
+      ],
+      "sessions_per_sensitivity": 2,
+      "trainer_width": 1280,
+      "trainer_height": 720,
+      "trainer_size_policy": "fixed_per_experiment",
+      "input_mode_policy": "prefer_unadjusted_with_fallback",
+      "settings": {
+        "sessions": 2,
+        "attempts": 2,
+        "sensitivity": 1.2,
+        "time_limit_seconds": 0,
+        "countdown_seconds": 0,
+        "crosshair_type": "Cross",
+        "crosshair_color": "#ffffff",
+        "crosshair_size": 16,
+        "crosshair_thickness": 2,
+        "target_color": "#e74c3c",
+        "background": "slate",
+        "hit_sound": false,
+        "hit_feedback": false,
+        "miss_feedback": false
+      }
+    },
+    "schedule": [
+      {
+        "sensitivity": 1.2,
+        "repeat": 1
+      },
+      {
+        "sensitivity": 1.2,
+        "repeat": 2
+      }
+    ],
+    "completed_session_ids": [],
+    "completed_count": 0,
+    "status": "incomplete",
+    "next_condition": {
+      "sensitivity": 1.2,
+      "repeat": 1
+    }
+  },
+  "history": [
+    {
+      "experiment_id": "38fc9758-2cda-4cde-81db-05ca0fe77666",
+      "created_at": "2026-11-04 16:07:35",
+      "saved_sessions": 0,
+      "interrupted_sessions": 0,
+      "managed": true,
+      "scene": "flick_2d"
+    },
+    {
+      "experiment_id": "83f1d32c-0b67-4860-b1ec-973fe910bc7d",
+      "created_at": "2026-11-04 16:06:24",
+      "saved_sessions": 0,
+      "interrupted_sessions": 0,
+      "managed": true,
+      "scene": "flick_2d"
+    }
+  ]
+}

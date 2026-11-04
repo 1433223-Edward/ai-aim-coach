@@ -1,0 +1,2 @@
+# Minimal non-Agent runtime; requirements.txt preserves the original environment evidence.
+-r requirements-test.txt

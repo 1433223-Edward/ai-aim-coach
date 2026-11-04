@@ -51,5 +51,28 @@ def main():
     )
 
 
+import unittest
+
+
+class ToolsFixtureTests(unittest.TestCase):
+    def test_isolated_fixture(self):
+        from unittest.mock import patch
+        from pathlib import Path
+        import tempfile
+        from backend import session_store as store
+        from scripts.seed_demo import seed_demo
+        from analysis.analysis_runtime import create_analysis_snapshot
+        with tempfile.TemporaryDirectory() as directory:
+            destination = Path(directory) / "tools.db"
+            info = seed_demo(destination)
+            with patch.object(store, "DB_PATH", destination):
+                snapshot = create_analysis_snapshot(info["experiment_id"])
+                self.assertEqual(get_analysis_summary(snapshot=snapshot)["experiment"]["session_count"], 9)
+                self.assertEqual(get_sensitivity_profile(1.2, snapshot=snapshot)["sensitivity"], 1.2)
+                result = compare_sensitivities([0.8, 1.0, 1.2], snapshot=snapshot)
+                self.assertEqual(len(result["profiles"]), 3)
+                self.assertEqual(result["evidence"], snapshot.metadata())
+
+
 if __name__ == "__main__":
-    main()
+    unittest.main()

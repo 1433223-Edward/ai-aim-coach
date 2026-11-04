@@ -1,17 +1,30 @@
 import logging
+from contextlib import asynccontextmanager
+from uuid import uuid4
 
 from fastapi import FastAPI, HTTPException
-from pydantic import BaseModel, Field, ConfigDict
+from fastapi.exceptions import RequestValidationError
+from fastapi.exception_handlers import request_validation_exception_handler
+from fastapi.responses import JSONResponse
+from pydantic import BaseModel, Field, ConfigDict, field_validator
 
 from agent.experiment_planner import (
     run_experiment_planner,
+    ModelUnavailable,
+    PlannerFailure,
 )
+from analysis.analysis_runtime import create_analysis_snapshot
 
 import sqlite3
 from backend.session_store import (
     get_session,
     init_database,
     save_session,
+    get_experiment,
+    get_or_create_experiment,
+    load_experiment_evidence,
+    ExperimentConflict,
+    ExperimentNotFound,
 )
 
 from analysis.session_validator import (
@@ -21,6 +34,11 @@ from analysis.session_validator import (
 from pathlib import Path
 
 from fastapi.staticfiles import StaticFiles
+from backend.session_store import storage_ready
+from agent.experiment_planner import model_settings
+import importlib.util
+import os
+import json
 # ============================================================
 # AI Aim Coach
 # Application API v0.1
@@ -59,12 +77,62 @@ FRONTEND_DIR = PROJECT_ROOT / "frontend"
 logger = logging.getLogger(__name__)
 
 
+@asynccontextmanager
+async def lifespan(app):
+    # Database initialization belongs to startup, not module import or model setup.
+    init_database()
+    yield
+
+
 app = FastAPI(
     title="AI Aim Coach API",
     version="0.1.0",
+    lifespan=lifespan,
 )
 
-init_database()
+
+@app.exception_handler(sqlite3.Error)
+async def storage_error(request, exc):
+    # Return a retryable storage failure without exposing paths or SQL values.
+    return JSONResponse(status_code=503, content={"detail": "Storage is unavailable. Retry later."})
+
+
+@app.exception_handler(json.JSONDecodeError)
+async def corrupt_storage_error(request, exc):
+    return JSONResponse(status_code=409, content={"detail": "Stored data is invalid; preserve it for inspection."})
+
+
+@app.exception_handler(ExperimentConflict)
+async def evidence_conflict(request, exc):
+    return JSONResponse(status_code=409, content={"detail": str(exc)})
+
+
+@app.get("/health")
+def health():
+    # Configuration readiness is local only; this endpoint never calls the paid provider.
+    storage = storage_ready()
+    try:
+        model_settings()
+        configured = bool(os.getenv("DASHSCOPE_API_KEY", "").strip()) and importlib.util.find_spec("openai") is not None
+    except (ModelUnavailable, ValueError, ImportError):
+        configured = False
+    return JSONResponse(status_code=200 if storage else 503, content={
+        "storage": "ready" if storage else "unavailable",
+        "agent": "configured_not_probed" if configured else "unavailable",
+    })
+
+
+@app.exception_handler(RequestValidationError)
+async def upload_validation_error(request, exc):
+    if request.url.path not in ("/sessions", "/sessions/incomplete", "/experiments", "/agent/plan"):
+        return await request_validation_exception_handler(request, exc)
+    # Do not echo malformed input (including NaN/Infinity) into JSON responses.
+    return JSONResponse(status_code=422, content={
+        "detail": [
+            {key: error[key] for key in ("loc", "msg", "type")}
+            for error in exc.errors()
+        ],
+    })
 
 # ============================================================
 # Local Frontend Access
@@ -100,25 +168,45 @@ class PlanRequest(BaseModel):
     用户现在希望下一轮训练解决什么问题。
     """
 
+    model_config = ConfigDict(strict=True, extra="forbid")
+
+    @field_validator("goal", "experiment_id")
+    @classmethod
+    def require_nonblank(cls, value):
+        # Blank goals cannot guide planning; identity whitespace must not select another scope.
+        if not value.strip():
+            raise ValueError("Value must not be blank.")
+        return value
+
     goal: str = Field(
         min_length=1,
         max_length=1000,
     )
+    # Select evidence explicitly; a later upload must not change the experiment identity.
+    experiment_id: str = Field(min_length=1)
+
+
+from backend.settings import ExperimentSettings
+
+
+class ExperimentRequest(BaseModel):
+    model_config = ConfigDict(strict=True)
+    trainer_width: int = Field(gt=50)
+    trainer_height: int = Field(gt=50)
+    settings: ExperimentSettings | None = None
 
 class SessionUpload(BaseModel):
     """
     Trainer 上传的一次完整训练 Session。
 
-    当前只严格验证 Analysis / Storage 真正依赖的
-    顶层字段。
-
-    attempts 内部暂时保持 Raw JSON,
-    不在 API 层重复定义完整 Collector Schema。
+    顶层不做隐式类型转换；嵌套 Raw JSON 由共享的
+    Session Integrity Validator 验证，并在 Storage / Analysis 再次守卫。
     """
 
     model_config = ConfigDict(
         populate_by_name=True,
         extra="allow",
+        strict=True,
     )
 
     schema_version: str = Field(
@@ -186,6 +274,12 @@ class PlanResponse(BaseModel):
     goal: str
     answer: str
     tools_used: list[str]
+    # Returned to the browser so it can detect stale recommendations.
+    evidence: dict
+    status: str
+    request_id: str
+    trace: list[dict]
+    usage: dict
 
 
 # ============================================================
@@ -217,26 +311,86 @@ def plan_next_experiment(
 
     try:
         result = run_experiment_planner(
-            request.goal
+            request.goal, request.experiment_id,
         )
-
+    except ExperimentNotFound as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+    except ExperimentConflict as exc:
+        # Empty, legacy or inconsistent experiments need user action, not another model call.
+        raise HTTPException(status_code=409, detail=str(exc)) from exc
+    except ModelUnavailable as exc:
+        raise HTTPException(status_code=503, detail=str(exc)) from exc
+    except PlannerFailure as exc:
+        # The runtime exposes only safe codes, trace metadata and a request ID.
+        raise HTTPException(status_code=exc.http_status, detail=exc.detail) from None
     except Exception as exc:
         # 对服务器日志保留完整错误，
         # 但不把内部异常细节直接暴露给客户端。
-        logger.exception(
-            "Agent planner failed."
-        )
+        request_id = str(uuid4())
+        logger.error("Agent planner failed request=%s type=%s.", request_id, type(exc).__name__)
 
         raise HTTPException(
             status_code=502,
-            detail="Agent planner failed.",
+            detail={"code": "internal_error", "message": "Agent planner failed.",
+                    "request_id": request_id, "trace": []},
         ) from exc
 
     return PlanResponse(
         goal=request.goal,
         answer=result["answer"],
         tools_used=result["tools_used"],
+        evidence=result["evidence"],
+        status=result["status"], request_id=result["request_id"],
+        trace=result["trace"], usage=result["usage"],
     )
+
+
+@app.post("/experiments")
+def create_or_resume_experiment(request: ExperimentRequest) -> dict:
+    # Concurrent tabs share the one active experiment in this local single-user app.
+    try:
+        return get_or_create_experiment(request.trainer_width, request.trainer_height,
+                                        request.settings.model_dump() if request.settings else None)
+    except ExperimentConflict as exc:
+        raise HTTPException(status_code=409, detail=str(exc)) from exc
+
+
+@app.get("/experiments/current")
+def read_current_experiment() -> dict:
+    # A completed experiment remains selected across refresh until the next explicit start.
+    try:
+        state = get_experiment()
+    except ExperimentConflict as exc:
+        raise HTTPException(status_code=409, detail=str(exc)) from exc
+    if state is None:
+        raise HTTPException(status_code=404, detail="No managed experiment found.")
+    return state
+
+
+@app.get("/experiments/{experiment_id}")
+def read_experiment(experiment_id: str) -> dict:
+    try:
+        state = get_experiment(experiment_id)
+        if state is None:
+            # Distinguish unknown identity from legacy rows that have no verified protocol.
+            load_experiment_evidence(experiment_id)
+        return state
+    except ExperimentNotFound as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+    except ExperimentConflict as exc:
+        raise HTTPException(status_code=409, detail=str(exc)) from exc
+
+
+@app.get("/experiments/{experiment_id}/analysis")
+def read_analysis(experiment_id: str) -> dict:
+    # Expose the existing deterministic capability without requiring any model configuration.
+    try:
+        snapshot = create_analysis_snapshot(experiment_id)
+        return {"analysis": snapshot.result(), "evidence": snapshot.metadata()}
+    except ExperimentNotFound as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+    except ExperimentConflict as exc:
+        raise HTTPException(status_code=409, detail=str(exc)) from exc
 
 @app.post(
     "/sessions",
@@ -310,6 +464,17 @@ def create_session(
             detail="Session already exists.",
         ) from exc
 
+    except ExperimentConflict as exc:
+        # A stale condition may already have been saved by another tab.
+        raise HTTPException(status_code=409, detail=str(exc)) from exc
+
+    except sqlite3.Error:
+        # Let the shared handler classify locked or unavailable storage as retryable.
+        raise
+
+    except json.JSONDecodeError:
+        raise
+
     except Exception as exc:
 
         logger.exception(
@@ -354,6 +519,55 @@ def read_session(
 # 如果放得太早，可能会拦截 /sessions、
 # /agent/plan 等 API。
 # ============================================================
+
+from fastapi import Query
+from datetime import date as CalendarDate
+from backend.session_store import save_incomplete_session, history_sessions, history_experiments, history_session_detail
+
+
+@app.post("/sessions/incomplete", response_model=SessionSaveResponse)
+def archive_incomplete(request: SessionUpload):
+    try:
+        save_incomplete_session(request.model_dump(by_alias=True))
+    except (ValueError, TypeError, KeyError) as exc:
+        if isinstance(exc, ExperimentConflict):raise HTTPException(409,str(exc)) from None
+        raise HTTPException(422,"Invalid incomplete Session report.") from None
+    return SessionSaveResponse(session_id=request.session_id,saved=True)
+
+
+@app.post("/experiments/{experiment_id}/end")
+def end_selected_experiment(experiment_id: str):
+    from backend.session_store import end_experiment
+    try:return end_experiment(experiment_id)
+    except ExperimentNotFound:raise HTTPException(404,"Experiment not found.") from None
+
+
+@app.get("/history/sessions")
+def session_history(experiment_id: str | None = None, date: CalendarDate | None = None,
+                    scene: str | None = None, limit: int = Query(100,ge=1,le=500), offset: int = Query(0,ge=0,le=1000000)):
+    return history_sessions(experiment_id,date.isoformat() if date else None,scene,limit,offset)
+
+
+@app.get("/history/experiments")
+def experiment_history(date: CalendarDate | None = None, scene: str | None = None,
+                       limit: int = Query(100,ge=1,le=500), offset: int = Query(0,ge=0,le=1000000)):
+    return history_experiments(date.isoformat() if date else None,scene,limit,offset)
+
+
+@app.get("/history/sessions/{session_id}")
+def session_history_detail(session_id: str):
+    try:return history_session_detail(session_id)
+    except ExperimentNotFound:raise HTTPException(404,"Session not found.") from None
+    except (ValueError,TypeError,KeyError,OverflowError):raise HTTPException(409,"Stored Session cannot be analyzed safely.") from None
+
+
+@app.get("/history/experiments/{experiment_id}")
+def experiment_history_detail(experiment_id: str):
+    state=get_experiment(experiment_id)
+    rows=history_sessions(experiment_id,limit=500)
+    if state is None and not rows:raise HTTPException(404,"Experiment not found.")
+    return {"experiment":state,"managed":state is not None,"sessions":rows,"protocol_verified":state is not None}
+
 
 app.mount(
     "/",

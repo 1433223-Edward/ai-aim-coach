@@ -1,0 +1,3 @@
+# Optional existing Qwen-compatible provider capability.
+-r requirements-runtime.txt
+openai==3.13.0

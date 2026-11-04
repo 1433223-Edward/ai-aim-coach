@@ -1,6 +1,6 @@
 import os
 
-from openai import OpenAI
+from agent.experiment_planner import get_model_client
 
 
 # ============================================================
@@ -21,15 +21,11 @@ from openai import OpenAI
 # ============================================================
 
 
-client = OpenAI(
-    api_key=os.getenv("DASHSCOPE_API_KEY"),
-
-    # 千问AI平台提供的 OpenAI-compatible endpoint
-    base_url="https://dashscope.aliyuncs.com/compatible-mode/v1",
-)
-
-
 def main():
+    # Real provider smoke is explicit and never runs during test discovery.
+    if os.getenv("AIMCOACH_LIVE_SMOKE") != "1":
+        raise SystemExit("Set AIMCOACH_LIVE_SMOKE=1 to opt into a real model request.")
+    client = get_model_client()
     response = client.chat.completions.create(
         # 当前只追求低成本 MVP
         model="qwen3.8-flash",

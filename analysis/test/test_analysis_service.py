@@ -314,5 +314,18 @@ def main() -> None:
     )
 
 
+import unittest
+
+
+class AnalysisFixtureTests(unittest.TestCase):
+    def test_isolated_fixture(self):
+        from analysis.legacy_adapter import load_legacy_fixture
+        sessions, _ = load_legacy_fixture()
+        result = analyze_sessions(sessions)
+        self.assertEqual(result["experiment"]["session_count"], 9)
+        self.assertEqual(result["experiment"]["attempt_count"], 180)
+        self.assertEqual(len(result["sensitivity_profiles"]), 3)
+
+
 if __name__ == "__main__":
-    main()
+    unittest.main()

@@ -2,95 +2,119 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-
-    <!--
-        viewport 用来保证浏览器按真实可视区域显示页面，
-        暂时不做复杂缩放映射。
-    -->
-    <meta
-        name="viewport"
-        content="width=device-width, initial-scale=1.0"
-    >
-
-    <title>AI Aim Coach - Build 0</title>
-
-    <link rel="stylesheet" href="./style.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#0b1017">
+    <title>AI Aim Coach — Precision training</title>
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='10' fill='none' stroke='%235be1e6' stroke-width='2'/%3E%3Cpath d='M16 0v10m0 12v10M0 16h10m12 0h10' stroke='%235be1e6' stroke-width='2'/%3E%3C/svg%3E">
+    <link rel="stylesheet" href="./style.css?v=phase1-settings-1">
 </head>
-
 <body>
-
-    <!--
-        trainer-area 是当前整个训练世界。
-
-        Build 0 阶段：
-        DOM 训练区域尺寸 = Trainer Coordinate System。
-
-        后续如果需要固定逻辑坐标系，
-        再在这一层之上增加映射。
-    -->
-    <main id="trainer-area">
-
-        <!-- 当前需要命中的目标 -->
-        <div id="target"></div>
-
-        <!--
-            这是我们自己绘制的虚拟准星。
-            真正的系统鼠标进入 Pointer Lock 后会被隐藏。
-        -->
-        <div id="crosshair"></div>
-
-        <div id="start-message">
-            点击训练区域开始
+    <a id="skipContent" class="skip-link" href="#pageContent">Skip to content</a>
+    <header class="site-header">
+        <div class="nav-inner">
+            <a class="brand" href="#/home" aria-label="AI Aim Coach Home"><span class="brand-mark" aria-hidden="true"></span>AI AIM COACH<span class="brand-tag">LAB</span></a>
+            <nav aria-label="Main navigation"><a href="#/home" data-page="home">Home</a><a href="#/test" data-page="test">Test <span aria-hidden="true">↗</span></a></nav>
+            <span class="local-badge"><span class="status-dot"></span> LOCAL DEMO</span>
+        </div>
+    </header>
+    <p id="navigationStatus" class="navigation-status" role="status" aria-live="polite"></p>
+    <main id="pageContent" tabindex="-1">
+        <div id="homePage">
+            <section class="hero content-width" aria-labelledby="heroTitle">
+                <div class="hero-copy">
+                    <p class="eyebrow"><span class="tiny-cross" aria-hidden="true">+</span> PRECISION IS A PROCESS</p>
+                    <h1 id="heroTitle">Precision training.<br><span>Intelligent insights.</span></h1>
+                    <p class="hero-description">Train your aim, understand your performance, and improve with AI-assisted recommendations.</p>
+                    <p class="hero-note">从一次 Flick，到一份有证据的训练建议。</p>
+                    <a class="button primary hero-cta" href="#/test">Start Training <span aria-hidden="true">↗</span></a>
+                    <div class="hero-footnote"><span>2D FLICK TRAINING</span><span class="separator">/</span><span>DETERMINISTIC ANALYSIS</span></div>
+                </div>
+                <div class="aim-visual" role="img" aria-label="Decorative aim rings and a target path. This illustration is not training data.">
+                    <div class="visual-caption"><span>FOCUS / ACQUIRE / REFINE</span><span>01 — AIM LAB</span></div>
+                    <svg viewBox="0 0 520 480" aria-hidden="true">
+                        <defs><radialGradient id="ringGlow"><stop stop-color="#5be1e6" stop-opacity=".08"/><stop offset="1" stop-color="#5be1e6" stop-opacity="0"/></radialGradient></defs>
+                        <circle cx="260" cy="240" r="215" fill="url(#ringGlow)"/>
+                        <g class="orbit-lines" fill="none" stroke="#253643"><circle cx="260" cy="240" r="180"/><circle cx="260" cy="240" r="130"/><circle cx="260" cy="240" r="78"/><path d="M32 240h456M260 25v430" stroke-dasharray="3 7"/></g>
+                        <path d="M95 342 172 315 234 262 300 223 353 154" fill="none" stroke="#55737e" stroke-width="1.5" stroke-dasharray="4 6"/>
+                        <g fill="#738991"><circle cx="95" cy="342" r="3"/><circle cx="172" cy="315" r="3"/><circle cx="234" cy="262" r="3"/><circle cx="300" cy="223" r="3"/></g>
+                        <g class="hero-target" fill="none" stroke="#5be1e6"><circle cx="353" cy="154" r="24"/><circle cx="353" cy="154" r="35" stroke-opacity=".35"/><path d="M353 102v26m0 52v26m-52-52h26m52 0h26"/><circle cx="353" cy="154" r="3" fill="#5be1e6"/></g>
+                        <g stroke="#edf4f7" stroke-width="1.5"><path d="M260 218v13m0 18v13m-22-22h13m18 0h13"/></g>
+                        <g fill="#617782" font-size="10" font-family="monospace"><text x="42" y="229">X</text><text x="270" y="40">Y</text><text x="30" y="440">VIRTUAL CROSSHAIR</text><text x="364" y="440">ILLUSTRATION</text></g>
+                    </svg>
+                    <div class="visual-bottom"><span class="status-dot"></span> INTENTIONAL MOVEMENT. MEASURABLE EVIDENCE.</div>
+                </div>
+            </section>
+            <section class="features content-width" aria-labelledby="featuresTitle">
+                <div class="section-heading"><p class="eyebrow">THE TRAINING LOOP</p><h2 id="featuresTitle">Every movement tells you something.</h2><p>Collect. Understand. Decide what to test next.</p></div>
+                <div class="feature-grid">
+                    <article class="feature-card"><span class="feature-index">01 / TRAIN</span><svg viewBox="0 0 48 48" aria-hidden="true"><circle cx="24" cy="24" r="13"/><path d="M24 2v13m0 18v13M2 24h13m18 0h13"/></svg><h3>2D Aim Training</h3><p>专注 Flick 与灵敏度测试。记录原始移动、点击和目标时序，保留训练过程。</p><span class="feature-detail">POINTER LOCK · RAW EVENTS</span></article>
+                    <article class="feature-card"><span class="feature-index">02 / UNDERSTAND</span><svg viewBox="0 0 48 48" aria-hidden="true"><path d="M7 7v34h35M14 31l8-13 9 7 10-17"/><circle cx="22" cy="18" r="2"/></svg><h3>Performance Analysis</h3><p>用四项确定性指标理解速度、失误、首击误差与路径效率。</p><span class="feature-detail">FIXED METRICS · REPRODUCIBLE</span></article>
+                    <article class="feature-card"><span class="feature-index">03 / REFINE</span><svg viewBox="0 0 48 48" aria-hidden="true"><path d="m24 4 5 14 15 6-15 5-5 15-5-15L4 24l15-6Z"/></svg><h3>AI Recommendations</h3><p>AI 通过工具读取分析证据，结合训练目标建议下一轮实验。结果与未知都有边界。</p><span class="feature-detail">TOOL CALLING · SCOPED EVIDENCE</span></article>
+                </div>
+            </section>
+            <footer class="site-footer content-width"><span>AI AIM COACH</span><span>A local, single-user training &amp; analysis demo.</span><a href="#/test">Enter the lab ↗</a></footer>
         </div>
 
+        <div id="testPage" hidden>
+            <section class="training-header content-width" aria-labelledby="testTitle">
+                <div><p class="eyebrow">THE TRAINING LAB</p><h1 id="testTitle">Find your precision.</h1><p id="trainingProtocolLabel">恢复冻结实验配置…</p></div>
+                <div class="insights-entry"><button id="openSettings" aria-haspopup="dialog" aria-controls="settingsDialog" class="button secondary" type="button">⚙ Settings</button><button id="openInsights" class="button secondary" type="button" aria-haspopup="dialog" aria-controls="insightsDrawer">✧ AI Insights <span aria-hidden="true">↗</span></button><small id="insightsHint">查看已保存数据与 AI 建议</small></div>
+            </section>
+            <section class="training-summary content-width" aria-label="Experiment status">
+                <div><span class="field-label">EXPERIMENT</span><span id="experimentIdentity" class="mono identity">首次进入时恢复服务端状态</span></div>
+                <div><span class="field-label">CONFIRMED SESSIONS</span><strong id="sessionProgress">— / —</strong></div>
+                <div><span class="field-label">SENSITIVITY</span><strong id="conditionValue">—</strong><small id="conditionDetail">等待实验条件</small></div>
+                <span id="trainingStatus" class="state-badge" data-state="syncing">SYNCING</span>
+            </section>
+            <div class="workspace-heading content-width"><span><span class="status-dot"></span> FLICK WORKSPACE</span><span>LEFT CLICK TO SHOOT <span class="separator">/</span> ESC TO EXIT</span></div>
+            <!-- No border, padding, transforms, scaling or responsive resizing on the coordinate surface. -->
+            <section id="trainer-area" aria-label="2D aim training area. Click to start; Escape exits.">
+                <div id="target"></div><div id="crosshair"></div>
+                <div id="start-message">点击训练区域开始</div>
+                <span class="workspace-corner" aria-hidden="true">2D / FLICK TEST</span>
+            </section>
+            <div class="content-width lifecycle-controls"><button id="pauseTraining" class="button secondary" type="button">暂停 / 继续</button><button id="endTraining" class="button quiet" type="button">提前结束并保存未完成记录</button><button id="endExperiment" class="button quiet" type="button">结束当前实验（保留历史）</button><p id="lifecycleStatus" role="status">P 暂停/继续 · E 提前结束。暂停保留已完成 Attempts，当前未命中 Attempt 重做；限时按活动训练时间计算。</p></div>
+            <section id="savePanel" class="save-panel content-width" aria-label="Session save status">
+                <div><p class="field-label">DATA &amp; RECOVERY</p><p id="saveStatus" role="status" aria-live="polite">尚无待上传 Session。</p><small>进度只在服务端确认后推进。未确认数据保留在本地队列。</small></div>
+                <div class="save-actions"><button id="retrySaveButton" class="button secondary" type="button">重试待上传数据</button><button id="exportPendingButton" class="button quiet" type="button">导出原始数据 ↓</button></div>
+            </section>
+            <p class="training-note content-width">训练区保留完整 viewport 坐标。若窗口大小与现有实验不同，请恢复原尺寸；右侧面板不会改变训练区尺寸。</p>
+        </div>
     </main>
-    <!-- ========================================================
-     AI Experiment Planner
 
-     当前只负责：
-     用户 Goal → Backend Agent → Recommendation
-
-     不参与鼠标采集和 Target Interaction。
-========================================================= -->
-
-    <section id="agentPanel" class="agent-panel">
-
-        <h2>AI Experiment Planner</h2>
-
-        <p>
-            告诉 AI Aim Coach 你下一轮训练想解决什么问题。
-        </p>
-
-        <textarea
-            id="agentGoal"
-            rows="4"
-            placeholder="例如：我想提高 Flick 速度，但不希望明显牺牲稳定性。"
-        ></textarea>
-
-        <button id="generatePlanButton">
-            生成下一轮实验建议
-        </button>
-
-        <p id="agentStatus"></p>
-
-        <div
-            id="agentResult"
-            class="agent-result"
-            hidden
-        >
-            <h3>Recommendation</h3>
-
-            <pre id="agentAnswer"></pre>
-
-            <h3>Tools Used</h3>
-
-            <p id="agentTools"></p>
+    <dialog id="insightsDrawer" class="insights-drawer" aria-labelledby="drawerTitle">
+        <div class="drawer-header"><div><p class="eyebrow">YOUR NEXT ITERATION</p><h2 id="drawerTitle">AI Insights<span>.</span></h2></div><button id="closeInsights" class="icon-button" type="button" aria-label="关闭 AI Insights">×</button></div>
+        <div class="drawer-body">
+            <section class="drawer-overview"><span class="field-label">EXPERIMENT SCOPE</span><p id="drawerExperiment" class="mono identity">尚未选择实验</p><p id="recommendationScope">尚无 AI 建议。生成操作才会请求模型。</p></section>
+            <section id="agentPanel" aria-labelledby="recommendationTitle">
+                <div class="drawer-section-title"><h3 id="recommendationTitle">01 <span>Recommendation</span></h3><span id="agentState" class="state-badge">AWAITING YOUR GOAL</span></div>
+                <label for="agentGoal">下一轮训练，你想改善什么？</label>
+                <textarea id="agentGoal" rows="3" maxlength="1000" placeholder="例如：提高 Flick 速度，同时减少失误。"></textarea>
+                <div class="agent-actions"><button id="generatePlanButton" class="button primary" type="button">生成实验建议 <span aria-hidden="true">↗</span></button><button id="cancelPlanButton" class="button quiet" type="button" disabled>取消等待</button></div>
+                <p id="agentStatus" class="agent-status" role="status" aria-live="polite">输入目标后生成建议。需要配置模型 Key；训练和分析无需 Key。</p>
+                <div id="agentResult" class="agent-result" hidden><pre id="agentAnswer"></pre><p class="field-label">TOOLS USED</p><p id="agentTools" class="mono"></p></div>
+            </section>
+            <section aria-labelledby="evidenceTitle"><div class="drawer-section-title"><h3 id="evidenceTitle">02 <span>Evidence</span></h3><span class="field-label">DETERMINISTIC</span></div><p id="evidenceStatus" role="status">完成并保存 Session 后显示真实指标。</p><p id="sampleInfo" class="mono sample-info">—</p><p id="evidenceRelationship" class="scope-note"></p><div id="metricProfiles"></div></section>
+            <section aria-labelledby="limitationsTitle"><div class="drawer-section-title"><h3 id="limitationsTitle">03 <span>Limitations &amp; next steps</span></h3></div><ul id="analysisLimitations" class="limitations"></ul><p class="scope-note">AI 的后续建议保留在上方原始正文，不自动拆解为可执行计划。数据反映客户端报告，不能证明真实命中或最优灵敏度。</p></section>
         </div>
-
-    </section>
-
-
-    <script src="./trainer.js"></script>
-
+        <div class="drawer-footer"><span class="status-dot"></span> SAVED DATA → ANALYSIS → TOOL CALLING</div>
+    </dialog>
+    <dialog id="settingsDialog" aria-labelledby="settingsTitle"><h2 id="settingsTitle">Experiment Settings</h2>
+    <p>仅用于下一次新实验；已有实验配置保持不变。保存设置后的新实验使用所选单一倍率；旧三档实验保留。灵敏度仅为应用内部指针倍率，不与 FPS 游戏等价。</p>
+    <form id="settingsForm"><fieldset><legend>操作与视觉（下一实验）</legend>
+<label>准心 <select name="crosshair_type"><option>Circle</option><option>Cross</option><option>Dot</option></select></label>
+<label>准心颜色 <input name="crosshair_color" type="color"></label><label>大小 <input name="crosshair_size" type="number" min="4" max="40" required></label>
+<label>粗细 <input name="crosshair_thickness" type="number" min="1" max="8" required></label><label>目标颜色 <input name="target_color" type="color"></label>
+<label>背景 <select name="background"><option value="dark">Dark</option><option value="slate">Slate</option><option value="midnight">Midnight</option></select></label>
+<label><input name="hit_sound" type="checkbox">命中音效</label><label><input name="hit_feedback" type="checkbox">命中反馈</label><label><input name="miss_feedback" type="checkbox">未命中反馈</label></fieldset>
+<fieldset><legend>实验配置（目标半径固定25px，不新增难度设置）</legend>
+<label>每 Session 时间上限（秒；0不限）<input name="time_limit_seconds" type="number" min="0" max="3600" required></label>
+<label>开始倒计时（秒）<input name="countdown_seconds" type="number" min="0" max="10" required></label>
+    <label>Sessions per Experiment <input name="sessions" type="number" min="1" max="30" required></label>
+    <label>Attempts per Session <input name="attempts" type="number" min="1" max="100" required></label>
+    <label>Pointer multiplier <input name="sensitivity" type="number" min="0.1" max="5" step="0.1" required></label>
+    </fieldset><button type="submit">保存偏好</button><button id="closeSettings" type="button">关闭</button><p id="settingsStatus" role="status"></p>
+    </form></dialog>
+    <script type="module" src="./app.js?v=phase1-settings-1"></script>
 </body>
 </html>

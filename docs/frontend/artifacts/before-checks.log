@@ -1,0 +1,237 @@
+test_bad_json_has_one_bounded_recovery (test_agent_guardrails.GuardrailTests.test_bad_json_has_one_bounded_recovery) ... ok
+test_corrupt_tool_payload_or_scope_is_rejected (test_agent_guardrails.GuardrailTests.test_corrupt_tool_payload_or_scope_is_rejected) ... ok
+test_empty_truncated_refused_and_malformed_messages_fail (test_agent_guardrails.GuardrailTests.test_empty_truncated_refused_and_malformed_messages_fail) ... ok
+test_invalid_arguments_are_errors_not_evidence (test_agent_guardrails.GuardrailTests.test_invalid_arguments_are_errors_not_evidence) ... ok
+test_last_model_round_does_not_execute_more_tools (test_agent_guardrails.GuardrailTests.test_last_model_round_does_not_execute_more_tools) ... ok
+test_malformed_tool_call_and_duplicate_ids_fail (test_agent_guardrails.GuardrailTests.test_malformed_tool_call_and_duplicate_ids_fail) ... ok
+test_missing_and_invalid_stored_evidence_has_request_identity (test_agent_guardrails.GuardrailTests.test_missing_and_invalid_stored_evidence_has_request_identity) ... ok
+test_missing_finish_state_and_empty_object_tool_calls_are_invalid (test_agent_guardrails.GuardrailTests.test_missing_finish_state_and_empty_object_tool_calls_are_invalid) ... ok
+test_provider_retry_is_bounded_and_errors_are_redacted (test_agent_guardrails.GuardrailTests.test_provider_retry_is_bounded_and_errors_are_redacted) ... ok
+test_reused_tool_id_in_later_round_is_rejected (test_agent_guardrails.GuardrailTests.test_reused_tool_id_in_later_round_is_rejected) ... ok
+test_single_tool_error_can_recover_using_valid_evidence (test_agent_guardrails.GuardrailTests.test_single_tool_error_can_recover_using_valid_evidence) ... ok
+test_success_requires_summary_and_all_tested_metric_profiles (test_agent_guardrails.GuardrailTests.test_success_requires_summary_and_all_tested_metric_profiles) ... ok
+test_summary_alone_cannot_substitute_for_metrics (test_agent_guardrails.GuardrailTests.test_summary_alone_cannot_substitute_for_metrics) ... ok
+test_tool_token_and_deadline_budgets (test_agent_guardrails.GuardrailTests.test_tool_token_and_deadline_budgets) ... ok
+test_zero_tools_is_never_accepted_as_a_recommendation (test_agent_guardrails.GuardrailTests.test_zero_tools_is_never_accepted_as_a_recommendation) ... ok
+test_missing_optional_sdk_fails_only_when_model_is_requested (test_agent_guardrails.StartupTests.test_missing_optional_sdk_fails_only_when_model_is_requested) ... ok
+test_without_key_import_startup_training_and_analysis_work (test_agent_guardrails.StartupTests.test_without_key_import_startup_training_and_analysis_work) ... ok
+test_demo_seed_is_repeatable_and_does_not_overwrite (test_demo_fixture.FixtureTests.test_demo_seed_is_repeatable_and_does_not_overwrite) ... ok
+test_legacy_sources_and_golden_result (test_demo_fixture.FixtureTests.test_legacy_sources_and_golden_result) ... ok
+test_sample_standard_deviation_and_finding_boundaries (test_demo_fixture.FixtureTests.test_sample_standard_deviation_and_finding_boundaries) ... ok
+test_seed_refuses_configured_database_without_connecting (test_demo_fixture.FixtureTests.test_seed_refuses_configured_database_without_connecting) ... ok
+test_duplicate_observations_do_not_inflate_samples (test_engineering_completion.AnalysisBoundaryTests.test_duplicate_observations_do_not_inflate_samples) ... ok
+test_finite_coordinates_with_overflowing_path_are_rejected (test_engineering_completion.AnalysisBoundaryTests.test_finite_coordinates_with_overflowing_path_are_rejected) ... ok
+test_statistics_overflow_is_a_controlled_data_error (test_engineering_completion.AnalysisBoundaryTests.test_statistics_overflow_is_a_controlled_data_error) ... ok
+test_backup_includes_committed_wal_and_rejects_invalid_source (test_engineering_completion.ReleaseTests.test_backup_includes_committed_wal_and_rejects_invalid_source) ... ok
+test_backup_restore_preserves_exact_rows_and_never_overwrites (test_engineering_completion.ReleaseTests.test_backup_restore_preserves_exact_rows_and_never_overwrites) ... ok
+test_health_and_storage_errors_are_safe_without_model_calls (test_engineering_completion.ReleaseTests.test_health_and_storage_errors_are_safe_without_model_calls) ... ok
+test_model_configuration_and_client_cleanup_on_both_paths (test_engineering_completion.ReleaseTests.test_model_configuration_and_client_cleanup_on_both_paths) ... ok
+test_tool_extra_claims_and_storage_failure_are_not_provider_success (test_engineering_completion.ReleaseTests.test_tool_extra_claims_and_storage_failure_are_not_provider_success) ... ok
+test_api_explicit_scope_status_and_resume (test_experiment_consistency.ExperimentTests.test_api_explicit_scope_status_and_resume) ... ok
+test_completion_is_restored_until_explicit_new_experiment (test_experiment_consistency.ExperimentTests.test_completion_is_restored_until_explicit_new_experiment) ... ok
+test_concurrent_tabs_cannot_commit_same_condition_twice (test_experiment_consistency.ExperimentTests.test_concurrent_tabs_cannot_commit_same_condition_twice) ... ok
+test_concurrent_tabs_create_only_one_active_experiment (test_experiment_consistency.ExperimentTests.test_concurrent_tabs_create_only_one_active_experiment) ... ok
+test_corrupt_identity_or_protocol_is_not_relabelled_as_valid_evidence (test_experiment_consistency.ExperimentTests.test_corrupt_identity_or_protocol_is_not_relabelled_as_valid_evidence) ... ok
+test_identity_schedule_and_confirmed_progress_survive_reload (test_experiment_consistency.ExperimentTests.test_identity_schedule_and_confirmed_progress_survive_reload) ... ok
+test_legacy_rows_are_not_migrated_or_used_as_verified_evidence (test_experiment_consistency.ExperimentTests.test_legacy_rows_are_not_migrated_or_used_as_verified_evidence) ... ok
+test_parallel_recommendations_do_not_share_evidence (test_experiment_consistency.ExperimentTests.test_parallel_recommendations_do_not_share_evidence) ... ok
+test_protocol_mismatch_and_unregistered_identity_are_rejected (test_experiment_consistency.ExperimentTests.test_protocol_mismatch_and_unregistered_identity_are_rejected) ... ok
+test_read_transaction_keeps_progress_and_session_rows_together (test_experiment_consistency.ExperimentTests.test_read_transaction_keeps_progress_and_session_rows_together) ... ok
+test_single_recommendation_keeps_snapshot_during_upload (test_experiment_consistency.ExperimentTests.test_single_recommendation_keeps_snapshot_during_upload) ... ok
+test_snapshot_is_immutable_and_new_requests_see_new_data (test_experiment_consistency.ExperimentTests.test_snapshot_is_immutable_and_new_requests_see_new_data) ... ok
+test_isolated_fixture (analysis.test.test_analysis_service.AnalysisFixtureTests.test_isolated_fixture) ... ok
+test_isolated_fixture (analysis.test.test_db_source.DatabaseFixtureTests.test_isolated_fixture) ... ok
+test_isolated_fixture (analysis.test.test_tools.ToolsFixtureTests.test_isolated_fixture) ... ok
+test_api_rejects_all_negative_cases_without_writes (test_session_contract.ApiTests.test_api_rejects_all_negative_cases_without_writes) ... ok
+test_api_rejects_bad_root (test_session_contract.ApiTests.test_api_rejects_bad_root) ... ok
+test_api_round_trip_duplicate_and_not_found (test_session_contract.ApiTests.test_api_round_trip_duplicate_and_not_found) ... ok
+test_all_negative_cases_rejected_by_validator_and_analysis (test_session_contract.ContractTests.test_all_negative_cases_rejected_by_validator_and_analysis) ... ok
+test_all_versioned_historical_json_without_mutation (test_session_contract.ContractTests.test_all_versioned_historical_json_without_mutation) ... ok
+test_attempt_ordering_and_mixed_experiments (test_session_contract.ContractTests.test_attempt_ordering_and_mixed_experiments) ... ok
+test_hand_calculated_metrics (test_session_contract.ContractTests.test_hand_calculated_metrics) ... ok
+test_historical_analysis_matches_retained_golden_output (test_session_contract.ContractTests.test_historical_analysis_matches_retained_golden_output) ... ok
+test_invalid_root_types_are_controlled_errors (test_session_contract.ContractTests.test_invalid_root_types_are_controlled_errors) ... ok
+test_multiple_misses_are_valid (test_session_contract.ContractTests.test_multiple_misses_are_valid) ... ok
+test_self_consistent_client_data_is_not_proof_of_real_actions (test_session_contract.ContractTests.test_self_consistent_client_data_is_not_proof_of_real_actions) ... ok
+test_zero_movement_equal_timestamps_and_circle_boundary (test_session_contract.ContractTests.test_zero_movement_equal_timestamps_and_circle_boundary) ... ok
+test_corrupt_existing_row_cannot_enter_analysis (test_session_contract.StorageTests.test_corrupt_existing_row_cannot_enter_analysis) ... ok
+test_direct_storage_rejects_every_negative_case_before_connecting (test_session_contract.StorageTests.test_direct_storage_rejects_every_negative_case_before_connecting) ... ok
+test_idempotency_does_not_confuse_json_booleans_with_numbers (test_session_contract.StorageTests.test_idempotency_does_not_confuse_json_booleans_with_numbers) ... ok
+test_valid_round_trip_and_duplicate_preserves_original (test_session_contract.StorageTests.test_valid_round_trip_and_duplicate_preserves_original) ... ok
+
+----------------------------------------------------------------------
+Ran 60 tests in 12.968s
+
+OK
+TAP version 13
+# Subtest: refresh restores server identity, schedule and confirmed progress
+ok 1 - refresh restores server identity, schedule and confirmed progress
+  ---
+  duration_ms: 33.1225
+  type: 'test'
+  ...
+# Subtest: only the primary button can record shots or advance attempts
+ok 2 - only the primary button can record shots or advance attempts
+  ---
+  duration_ms: 5.4032
+  type: 'test'
+  ...
+# Subtest: available browser environment is preserved without assuming unknown device settings
+ok 3 - available browser environment is preserved without assuming unknown device settings
+  ---
+  duration_ms: 8.2712
+  type: 'test'
+  ...
+# Subtest: two pages share identity and re-read progress before training
+ok 4 - two pages share identity and re-read progress before training
+  ---
+  duration_ms: 8.572
+  type: 'test'
+  ...
+# Subtest: pending and failed uploads never advance local progress
+ok 5 - pending and failed uploads never advance local progress
+  ---
+  duration_ms: 12.4456
+  type: 'test'
+  ...
+# Subtest: completed experiment remains selected after refresh until explicit new start
+ok 6 - completed experiment remains selected after refresh until explicit new start
+  ---
+  duration_ms: 3.2591
+  type: 'test'
+  ...
+# Subtest: recommendation sends explicit identity and discards evidence changed during model calls
+ok 7 - recommendation sends explicit identity and discards evidence changed during model calls
+  ---
+  duration_ms: 5.9533
+  type: 'test'
+  ...
+# Subtest: cross-tab update invalidates answers and focus reloads server progress
+ok 8 - cross-tab update invalidates answers and focus reloads server progress
+  ---
+  duration_ms: 7.153
+  type: 'test'
+  ...
+# Subtest: viewport mismatch prevents collection and resize aborts an unfinished session
+ok 9 - viewport mismatch prevents collection and resize aborts an unfinished session
+  ---
+  duration_ms: 4.9112
+  type: 'test'
+  ...
+# Subtest: an older response cannot restore a previously selected experiment
+ok 10 - an older response cannot restore a previously selected experiment
+  ---
+  duration_ms: 4.5696
+  type: 'test'
+  ...
+# Subtest: notification storage failure does not turn a committed save into an error
+ok 11 - notification storage failure does not turn a committed save into an error
+  ---
+  duration_ms: 5.4586
+  type: 'test'
+  ...
+# Subtest: refresh preserves this tab's selected experiment when another tab starts a new one
+ok 12 - refresh preserves this tab's selected experiment when another tab starts a new one
+  ---
+  duration_ms: 4.5575
+  type: 'test'
+  ...
+# Subtest: a missing stored selection is reported instead of silently replacing identity
+ok 13 - a missing stored selection is reported instead of silently replacing identity
+  ---
+  duration_ms: 2.4083
+  type: 'test'
+  ...
+# Subtest: failed uploads survive refresh and retry the same immutable Session
+ok 14 - failed uploads survive refresh and retry the same immutable Session
+  ---
+  duration_ms: 10.0289
+  type: 'test'
+  ...
+# Subtest: lost acknowledgement retries the same ID without duplicate storage
+ok 15 - lost acknowledgement retries the same ID without duplicate storage
+  ---
+  duration_ms: 5.6901
+  type: 'test'
+  ...
+# Subtest: duplicate retry clicks cannot start a second flush
+ok 16 - duplicate retry clicks cannot start a second flush
+  ---
+  duration_ms: 3.9378
+  type: 'test'
+  ...
+# Subtest: timeout releases saving state and keeps durable pending data
+ok 17 - timeout releases saving state and keeps durable pending data
+  ---
+  duration_ms: 33.8745
+  type: 'test'
+  ...
+# Subtest: wrong acknowledgement is not treated as a successful save
+ok 18 - wrong acknowledgement is not treated as a successful save
+  ---
+  duration_ms: 6.788
+  type: 'test'
+  ...
+# Subtest: corrupt pending state blocks collection and remains manually exportable
+ok 19 - corrupt pending state blocks collection and remains manually exportable
+  ---
+  duration_ms: 3.529
+  type: 'test'
+  ...
+# Subtest: cancelled model waiting never displays a late answer
+ok 20 - cancelled model waiting never displays a late answer
+  ---
+  duration_ms: 3.3794
+  type: 'test'
+  ...
+# Subtest: pointer lock fallback and error paths do not leave an active Session
+ok 21 - pointer lock fallback and error paths do not leave an active Session
+  ---
+  duration_ms: 4.0055
+  type: 'test'
+  ...
+# Subtest: illegal restored completion state is rejected instead of trained
+ok 22 - illegal restored completion state is rejected instead of trained
+  ---
+  duration_ms: 3.4648
+  type: 'test'
+  ...
+# Subtest: quota failures keep raw data in memory and warn before closing
+ok 23 - quota failures keep raw data in memory and warn before closing
+  ---
+  duration_ms: 4.8819
+  type: 'test'
+  ...
+# Subtest: per-session keys survive reload and independent tab writes
+ok 24 - per-session keys survive reload and independent tab writes
+  ---
+  duration_ms: 5.819
+  type: 'test'
+  ...
+# Subtest: corrupt and conflicting records remain exportable instead of being deleted
+ok 25 - corrupt and conflicting records remain exportable instead of being deleted
+  ---
+  duration_ms: 0.8637
+  type: 'test'
+  ...
+# Subtest: unavailable storage retains memory evidence and warns before closing
+ok 26 - unavailable storage retains memory evidence and warns before closing
+  ---
+  duration_ms: 0.7432
+  type: 'test'
+  ...
+# Subtest: failed durable cleanup remains idempotently retryable
+ok 27 - failed durable cleanup remains idempotently retryable
+  ---
+  duration_ms: 0.3844
+  type: 'test'
+  ...
+1..27
+# tests 27
+# suites 0
+# pass 27
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1364.1489

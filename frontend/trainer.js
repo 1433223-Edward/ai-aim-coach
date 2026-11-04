@@ -1,3 +1,7 @@
+import {readSettings, DEFAULT_SETTINGS, applyVisualSettings, shotFeedback} from "./settings.js";
+import {PendingSessionQueue} from "./pending_sessions.js";
+import {requestJson} from "./api.js";
+
 // ============================================================
 // AI Aim Coach
 // Build 0 - Virtual Crosshair Input
@@ -13,7 +17,7 @@
 //      ↓
 // Virtual Crosshair
 //
-// 暂时不处理 Target、Session、Attempt、数据保存。
+// Collection, server-backed experiment progress and scoped recommendations.
 // ============================================================
 
 
@@ -26,173 +30,237 @@ const crosshair = document.getElementById("crosshair");
 const target = document.getElementById("target");
 const startMessage = document.getElementById("start-message");
 
-// ============================================================
-// Experiment ID v0.1
-//
-// 当前阶段暂时由浏览器维护 Experiment 编号。
-//
-// localStorage 的作用：
-// - 页面刷新后编号不会消失
-// - 浏览器重新打开后仍然保留
-//
-// 未来如果加入账号 / Backend Experiment State，
-// Experiment ID 应该改由后端生成。
-// ============================================================
-
-
-const EXPERIMENT_COUNTER_KEY =
-    "aimcoachExperimentCounter";
-
-// 如果浏览器从来没有保存过编号，
-// 默认从 Experiment 1 开始。
-function getExperimentNumber() {
-    const storedValue = localStorage.getItem(
-        EXPERIMENT_COUNTER_KEY
-    );
-
-    if (storedValue === null) {
-        return 1;
-    }
-
-    return Number(storedValue);
-}
-
-
-// 将数字 4 转换成：
-//
-// exp_004
-//
-// padStart 保证编号长度统一，
-// 以后文件、数据库和日志里更容易阅读。
-function getCurrentExperimentId() {
-    const experimentNumber =
-        getExperimentNumber();
-
-    return (
-        "exp_"
-        + String(experimentNumber).padStart(
-            3,
-            "0"
-        )
-    );
-}
-
-
-// 只有“一整个 Experiment 完成”时调用。
-//
-// 注意：
-// 不是每完成一个 Session 就 +1。
-function advanceExperimentId() {
-    const nextExperimentNumber =
-        getExperimentNumber() + 1;
-
-    localStorage.setItem(
-        EXPERIMENT_COUNTER_KEY,
-        String(nextExperimentNumber)
-    );
-}
-
-
-// ------------------------------------------------------------
-// 2. Trainer State
-//
-// 这些变量代表当前训练器最小状态。
-// ------------------------------------------------------------
-
-const EXPERIMENT_SENSITIVITIES = [
-    0.8,
-    1.0,
-    1.2
-];
-
-const SESSIONS_PER_SENSITIVITY = 3;
-
-let trainerSensitivity = 1.0;
-
-const targetCount = 3;
-
-
-// ------------------------------------------------------------
-// Experiment Controller
-//
-// 生成：
-//
-// 0.8 × 3
-// 1.0 × 3
-// 1.2 × 3
-//
-// 然后随机打乱。
-// ------------------------------------------------------------
-
-function shuffle(array) {
-    const result = [...array];
-
-    // Fisher-Yates Shuffle
-    for (let i = result.length - 1; i > 0; i--) {
-        const j = Math.floor(
-            Math.random() * (i + 1)
-        );
-
-        [result[i], result[j]] = [
-            result[j],
-            result[i]
-        ];
-    }
-
-    return result;
-}
-
-
-function createExperimentSchedule() {
-    const conditions = [];
-
-    for (const sensitivity of EXPERIMENT_SENSITIVITIES) {
-        for (
-            let repeat = 1;
-            repeat <= SESSIONS_PER_SENSITIVITY;
-            repeat++
-        ) {
-            conditions.push({
-                sensitivity,
-                repeat
-            });
-        }
-    }
-
-    return shuffle(conditions);
-}
-
-
-const experimentSchedule =
-    createExperimentSchedule();
-
+// The server owns identity, protocol, schedule and confirmed progress.
+let activeExperiment = null;
+let experimentSchedule = [];
 let currentExperimentIndex = 0;
-
 let experimentFinished = false;
+let experimentLoading = false;
+let sessionSaving = false;
+let planBusy = false;
+let experimentError = "";
+let trainerSensitivity = 1.0;
+let currentInputMode = "unadjusted_requested";
 
+// A revision prevents an older asynchronous answer from replacing newer state.
+let planRequestVersion = 0;
+let recommendationEvidence = null;
+let pointerLockPending = false;
+let planFailureCode = null;
+let paused = false;
+let countdown = false;
+let activeStarted = 0;
+let activeElapsed = 0;
+let lifecycleTimer = null;
+let frozenSettings = DEFAULT_SETTINGS;
+let pauseRequested = false;
 
-console.log(
-    "Experiment Schedule:",
-    experimentSchedule
-);
+function lifecycleMessage(text) { document.getElementById("lifecycleStatus").textContent=text; }
+function activeMilliseconds() { return activeElapsed + (sessionActive && !paused ? performance.now()-activeStarted : 0); }
+function stopTimer() { clearTimeout(lifecycleTimer);lifecycleTimer=null; }
+function armLimit() {
+    stopTimer();
+    if(frozenSettings.time_limit_seconds>0) lifecycleTimer=setTimeout(()=>{void finishIncomplete("time_limit");},Math.max(0,frozenSettings.time_limit_seconds*1000-activeMilliseconds()));
+}
+async function finishIncomplete(reason) {
+    if(!sessionActive)return;
+    currentSession.activeDurationMs=activeMilliseconds();
+    currentSession.status="incomplete";currentSession.interruptionReason=reason;
+    currentSession.interruptedAttempt=currentAttempt;
+    paused=false;pauseRequested=false;stopTimer();
+    lifecycleMessage("未完成记录进入可靠保存队列；不会推进实验条件，也不进入分析样本。");
+    await completeSession();
+    lifecycleMessage(pendingQueue.list().sessions.some(item=>item.sessionId===currentSession.sessionId)
+        ? "未完成记录保存或本地清理尚未确认，请重试/导出；实验进度未推进。"
+        : "未完成记录已由服务端确认归档；实验进度未推进，可重做当前条件。");
+}
+export function pauseTraining() {
+    if(!sessionActive||paused)return;
+    activeElapsed=activeMilliseconds();paused=true;pauseRequested=true;stopTimer();
+    // Keep completed attempts intact. A partly observed attempt is not a completed observation.
+    currentSession.pausedAttempts ||= [];if(currentAttempt)currentSession.pausedAttempts.push(currentAttempt);
+    currentAttempt=null;target.style.display="none";document.exitPointerLock();
+    startMessage.style.display="block";startMessage.textContent="已暂停 · 按 P 或点击训练区继续";
+    lifecycleMessage("已暂停。点击训练区或“暂停 / 继续”重新锁定后继续；当前 Attempt 重做。");publishState();
+}
+
+const stateListeners = new Set();
+
+// The shell receives copies and cannot mutate the controller's protocol or progress.
+export function getTrainingState() {
+    return {paused, countdown, sessionActive, sessionSaving, planBusy, experimentLoading, pointerLockPending,
+        locked: document.pointerLockElement === trainerArea,
+        experiment: activeExperiment ? JSON.parse(JSON.stringify(activeExperiment)) : null,
+        recommendationEvidence: recommendationEvidence ? JSON.parse(JSON.stringify(recommendationEvidence)) : null,
+        pending: hasUnconfirmedData(), error: experimentError, planFailureCode};
+}
+
+export function subscribeTrainingState(listener) {
+    stateListeners.add(listener);
+    listener(getTrainingState());
+    return () => stateListeners.delete(listener);
+}
+
+function publishState() {
+    // Presentation failures must never interrupt saving or raw event collection.
+    for (const listener of stateListeners) {
+        try { listener(getTrainingState()); }
+        catch (error) { console.error("Training UI update failed", error); }
+    }
+}
+
+export function canLeaveTrainingPage() {
+    // Require the existing Escape/abort path, including the asynchronous lock request gap.
+    return !sessionActive && !pointerLockPending && document.pointerLockElement !== trainerArea;
+}
+
+function invalidateRecommendation() {
+    planRequestVersion++;
+    if (recommendationEvidence) {
+        agentStatus.textContent = "实验数据已变化，旧建议已隐藏；请重新生成。";
+    }
+    recommendationEvidence = null;
+    agentResult.hidden = true;
+}
+
+function applyExperimentState(state) {
+    // Reject malformed or self-contradictory restored state instead of starting the wrong condition.
+    if (!state || typeof state.experiment_id !== "string" || !state.experiment_id ||
+        !Array.isArray(state.schedule) || state.schedule.length === 0 ||
+        !Number.isInteger(state.completed_count) || state.completed_count < 0 ||
+        state.completed_count > state.schedule.length ||
+        !Array.isArray(state.completed_session_ids) || state.completed_session_ids.length !== state.completed_count ||
+        new Set(state.completed_session_ids).size !== state.completed_count ||
+        !["complete", "incomplete"].includes(state.status) ||
+        (state.status === "complete") !== (state.completed_count === state.schedule.length) ||
+        JSON.stringify(state.next_condition) !== JSON.stringify(state.ended ? null : state.schedule[state.completed_count] || null) ||
+        state.protocol?.version !== "1" ||
+        ![state.protocol.target_count, state.protocol.trainer_width, state.protocol.trainer_height]
+            .every((value) => Number.isInteger(value) && value > 0) ||
+        state.schedule.some((condition) => !Number.isFinite(condition.sensitivity) || condition.sensitivity <= 0 ||
+            !Number.isInteger(condition.repeat) || condition.repeat <= 0)) {
+        throw new Error("实验恢复状态无效；不会覆盖已有选择或开始训练。");
+    }
+    const identityChanged = activeExperiment?.experiment_id !== state.experiment_id;
+    const previousIds = activeExperiment?.completed_session_ids || [];
+    // Invalidate displayed evidence whenever its source identity or session set changes.
+    if (activeExperiment?.experiment_id !== state.experiment_id ||
+        JSON.stringify(previousIds) !== JSON.stringify(state.completed_session_ids)) {
+        invalidateRecommendation();
+    }
+    activeExperiment = state;
+    if(identityChanged)lifecycleMessage("冻结配置已载入；P 暂停/继续，E 提前结束 Session。");
+    applyVisualSettings({...DEFAULT_SETTINGS,...(state.protocol.settings||{})},crosshair,target,trainerArea);
+    try {
+        // Keep only this tab's selection across reload; progress and evidence stay on the server.
+        sessionStorage.setItem("aimcoachSelectedExperimentId", state.experiment_id);
+    } catch (error) {
+        console.warn("Tab selection storage unavailable.", error);
+    }
+    experimentSchedule = state.schedule;
+    currentExperimentIndex = state.completed_count;
+    experimentFinished = state.status === "complete" || state.ended === true;
+    experimentError = "";
+    updateExperimentMessage();
+}
+
+// These deadlines bound UI waiting; the server has an independent Agent budget.
+let requestTimeoutMs = 15000;
+let planTimeoutMs = 70000;
+let planAbortController = null;
+let queueStorage = null;
+try { queueStorage = localStorage; } catch (error) { /* Browser storage may be disabled. */ }
+const pendingQueue = new PendingSessionQueue(queueStorage);
+
+function hasUnconfirmedData() {
+    const pending = pendingQueue.list();
+    return pending.sessions.length > 0 || pending.errors.length > 0;
+}
+
+// Keep controller-specific deadlines at the caller; transport owns no training state.
+const fetchJson = (url, options = {}, timeoutMs = requestTimeoutMs) => requestJson(url, options, timeoutMs);
+
+async function refreshExperiment({initial = false, startNew = false} = {}) {
+    experimentLoading = true;
+    updateExperimentMessage();
+    try {
+        let state;
+        if (startNew) {
+            state = await createExperiment();
+        } else {
+            let selectedId = activeExperiment?.experiment_id;
+            if (initial && !selectedId) {
+                try {
+                    selectedId = sessionStorage.getItem("aimcoachSelectedExperimentId");
+                } catch (error) {
+                    console.warn("Tab selection storage unavailable.", error);
+                }
+            }
+            const path = selectedId ? `/experiments/${encodeURIComponent(selectedId)}` : "/experiments/current";
+            try {
+                state = await fetchJson(path, {cache: "no-store"});
+                if (selectedId && state.experiment_id !== selectedId) {
+                    throw new Error("服务器返回了不同实验，已拒绝恢复。");
+                }
+            } catch (error) {
+                // Only a fresh installation creates automatically; never replace a missing selected ID.
+                if (initial && !selectedId && error.status === 404) {
+                    state = await createExperiment();
+                } else {
+                    throw error;
+                }
+            }
+        }
+        applyExperimentState(state);
+        return state;
+    } catch (error) {
+        experimentError = `无法恢复实验：${error.message}`;
+        invalidateRecommendation();
+        throw error;
+    } finally {
+        experimentLoading = false;
+        updateExperimentMessage();
+    }
+}
+
+async function createExperiment() {
+    const preferences = readSettings();
+    return fetchJson("/experiments", {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({trainer_width: trainerArea.clientWidth,
+                              trainer_height: trainerArea.clientHeight, ...(preferences ? {settings: preferences} : {})}),
+    });
+}
 
 function updateExperimentMessage() {
-
-    if (experimentFinished) {
-        startMessage.textContent =
-            "实验完成：所有 Session 已采集";
-
-        return;
+    try {
+        if (experimentLoading || sessionSaving) {
+            startMessage.textContent = "正在同步已保存的实验进度...";
+            return;
+        }
+        if (hasUnconfirmedData()) {
+            startMessage.textContent = "存在未确认保存的数据；请使用页面下方的重试或原始数据导出按钮。";
+            return;
+        }
+        if (experimentError) {
+            startMessage.textContent = experimentError;
+            return;
+        }
+        if (!activeExperiment) {
+            startMessage.textContent = "正在载入实验...";
+            return;
+        }
+        if (experimentFinished) {
+            startMessage.textContent = activeExperiment.ended ? "实验已提前结束，历史保留；点击创建新设置实验" : "实验已保存完成；可生成建议，或点击创建下一轮实验";
+            return;
+        }
+        const condition = experimentSchedule[currentExperimentIndex];
+        startMessage.textContent = `Session ${currentExperimentIndex + 1} / ${experimentSchedule.length}` +
+            ` | Sensitivity ${condition.sensitivity} | 点击开始`;
+    } finally {
+        publishState();
     }
-
-    const condition =
-        experimentSchedule[currentExperimentIndex];
-
-    startMessage.textContent =
-        `Session ${currentExperimentIndex + 1}` +
-        ` / ${experimentSchedule.length}` +
-        ` | Sensitivity ${condition.sensitivity}` +
-        ` | 点击开始`;
 }
 
 // 准星当前坐标。
@@ -289,6 +357,7 @@ function spawnTarget() {
 
     // 新 Target 出现，就意味着新的 Attempt 开始。
     currentAttempt = {
+        attemptId: crypto.randomUUID(),
         target: {
             x: targetX,
             y: targetY,
@@ -309,8 +378,8 @@ function spawnTarget() {
 }
 function startSession() {
 
-    // 所有实验完成以后，不允许再启动新的 Session。
-    if (experimentFinished) {
+    // Start only from confirmed server progress and the experiment's fixed viewport.
+    if (!activeExperiment || experimentFinished || sessionSaving || planBusy) {
         return;
     }
 
@@ -327,6 +396,15 @@ function startSession() {
     trainerSensitivity =
         condition.sensitivity;
 
+    const protocol = activeExperiment.protocol;
+    if (trainerArea.clientWidth !== protocol.trainer_width ||
+        trainerArea.clientHeight !== protocol.trainer_height) {
+        experimentError = `请恢复实验窗口尺寸 ${protocol.trainer_width} × ${protocol.trainer_height} 后重试。`;
+        document.exitPointerLock();
+        updateExperimentMessage();
+        return;
+    }
+    invalidateRecommendation();
     currentSession = {
         /*
          * 数据结构版本。
@@ -337,8 +415,18 @@ function startSession() {
          */
         schemaVersion: "0.1",
 
-        experimentId:
-        getCurrentExperimentId(),
+        // Bind raw collection to the server-owned protocol and condition.
+        experimentId: activeExperiment.experiment_id,
+        protocolVersion: protocol.version,
+        inputMode: currentInputMode,
+        // Browser reports aid later inspection; they do not prove physical DPI or input authenticity.
+        // Null preserves unknown values without inventing a device or changing the fixed protocol.
+        clientEnvironment: {
+            devicePixelRatio: Number.isFinite(window.devicePixelRatio) && window.devicePixelRatio > 0
+                ? window.devicePixelRatio : null,
+            visualViewportScale: Number.isFinite(window.visualViewport?.scale) && window.visualViewport.scale > 0
+                ? window.visualViewport.scale : null,
+        },
         sessionId: crypto.randomUUID(),
 
         /*
@@ -375,12 +463,19 @@ function startSession() {
         trainerWidth: trainerArea.clientWidth,
         trainerHeight: trainerArea.clientHeight,
 
-        targetCount,
+        targetCount: protocol.target_count,
 
         attempts: []
     };
 
+    frozenSettings = {...DEFAULT_SETTINGS,sessions:experimentSchedule.length,attempts:protocol.target_count,sensitivity:condition.sensitivity,...(protocol.settings || {})};
+    currentSession.settingsSnapshot = frozenSettings;
+    currentSession.scene = "flick_2d";
+    applyVisualSettings(frozenSettings,crosshair,target,trainerArea);
+    paused=false;activeElapsed=0;activeStarted=performance.now();
     sessionActive = true;
+    armLimit();
+    publishState();
 
     console.log(
         `Start Session ${currentExperimentIndex + 1}` +
@@ -498,54 +593,15 @@ const SESSION_API =
 
 
 async function saveSessionToBackend(session) {
-    const response = await fetch(
-        SESSION_API,
-        {
-            method: "POST",
-
-            headers: {
-                "Content-Type": "application/json",
-            },
-
-            // currentSession 本身就是 Raw Session Schema，
-            // 不在 Frontend 重新构造另一份数据。
-            body: JSON.stringify(session),
-        }
-    );
-
-
-    if (!response.ok) {
-        let errorDetail = "";
-
-        try {
-            const errorBody =
-                await response.json();
-        
-            const detail =
-                errorBody.detail;
-        
-            if (typeof detail === "string") {
-                errorDetail = detail;
-            } else {
-                errorDetail =
-                    JSON.stringify(detail);
-            }
-        
-        } catch {
-            // Backend 未返回 JSON 时保持空错误信息。
-        }
-
-        throw new Error(
-            `Failed to save session: `
-            + `${response.status} `
-            + `${errorDetail}`
-        );
+    const result = await fetchJson(session.status === "incomplete" ? "/sessions/incomplete" : SESSION_API, {
+        method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify(session),
+    });
+    // HTTP 200 alone is not an acknowledgement of this payload.
+    if (result.saved !== true || result.session_id !== session.sessionId) {
+        throw new Error("保存确认与当前 Session 不一致；数据仍在待上传队列。");
     }
-
-
-    return await response.json();
+    return result;
 }
-
 
 // ============================================================
 // Attempt Completion
@@ -586,123 +642,102 @@ function completeCurrentAttempt() {
 // 才退回本地 JSON 下载，避免真实训练数据丢失。
 // ============================================================
 
-async function persistCompletedSession(session) {
+function setSaveStatus(message) {
+    document.getElementById("saveStatus").textContent = message;
+    document.getElementById("retrySaveButton").disabled = sessionSaving || planBusy || sessionActive;
+    publishState();
+}
+
+function exportPendingSessions() {
+    // A download trigger is not proof the browser stored the file; ask the user to check it.
+    const payload = JSON.stringify({format: "aimcoach-pending-v1", records: [...pendingQueue.rawEntries()]}, null, 2);
+    const url = URL.createObjectURL(new Blob([payload], {type: "application/json"}));
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = "aimcoach-pending-backup.json";
+    link.click();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+    setSaveStatus("已触发原始数据下载；请确认文件确实保存。待上传队列未删除。" +
+        (pendingQueue.memoryOnly ? " 数据仅在当前页面内存中，请保持页面打开。" : ""));
+}
+
+async function retryPendingSessions() {
+    // Only one local flush runs at a time. Server idempotency handles other tabs and lost replies.
+    if (sessionSaving || sessionActive || planBusy) return;
+    const pending = pendingQueue.list();
+    if (pending.errors.length) {
+        setSaveStatus("待上传状态损坏或冲突；请先导出备份，不能自动覆盖或删除。");
+        return;
+    }
+    if (!pending.sessions.length) {
+        setSaveStatus("没有待上传数据。");
+        return;
+    }
+    sessionSaving = true;
+    invalidateRecommendation();
+    setSaveStatus(`保存中：${pending.sessions.length} 个 Session 待确认。`);
+    updateExperimentMessage();
+    let acknowledged = 0;
     try {
-        const result =
-            await saveSessionToBackend(session);
-
-        console.log(
-            "[Session Saved]",
-            result.session_id
-        );
-
+        for (const session of pending.sessions) {
+            for (let attempt = 0; attempt < 2; attempt++) {
+                try {
+                    await saveSessionToBackend(session);
+                    break;
+                } catch (error) {
+                    // Retry transient failures once, without generating a new payload or ID.
+                    if (attempt === 0 && error.retryable) {
+                        setSaveStatus("暂时无法确认保存，正在使用原 Session ID 重试一次...");
+                        continue;
+                    }
+                    throw error;
+                }
+            }
+            acknowledged++;
+            if (!pendingQueue.acknowledge(session.sessionId)) {
+                throw new Error("服务器已确认保存，但本地队列清理失败；再次重试不会重复写入。");
+            }
+        }
+        setSaveStatus(`保存成功：服务器已确认 ${acknowledged} 个 Session。`);
+        try {
+            // Sync progress separately: a failed GET must not undo a confirmed POST.
+            await refreshExperiment();
+            localStorage.setItem("aimcoachEvidenceRevision", crypto.randomUUID());
+        } catch (error) {
+            setSaveStatus(`服务器已确认保存；进度同步或跨页通知未完成：${error.message}`);
+        }
     } catch (error) {
-        console.error(
-            "[Session Save Failed]",
-            error
-        );
-
-        console.warn(
-            "Fallback to local JSON download."
-        );
-
-        downloadSessionAsJson(session);
+        setSaveStatus(`保存未全部确认：${error.message} ` + (pendingQueue.memoryOnly
+            ? "数据仅在当前页面内存中，请立即导出并保持页面打开。"
+            : "数据保留在浏览器待上传队列，可重试或导出。"));
+        try { downloadSessionAsJson(pending.sessions[Math.min(acknowledged, pending.sessions.length - 1)]); }
+        catch (downloadError) { setSaveStatus("自动下载未成功触发；数据仍保留，请使用手动导出按钮。"); }
+    } finally {
+        sessionSaving = false;
+        document.getElementById("retrySaveButton").disabled = false;
+        updateExperimentMessage();
     }
 }
 
-// ============================================================
-// Session Completion
-//
-// 负责：
-// 1. Finalize Session
-// 2. 推进 Experiment
-// 3. 退出训练状态
-// 4. 持久化 Session
-//
-// 数据分析和 Agent 决策不属于这里。
-// ============================================================
-
 async function completeSession() {
-
-    // --------------------------------------------------------
-    // 1. Finalize Session Data
-    // --------------------------------------------------------
-
-    currentSession.endTime =
-        performance.now();
-
-    currentSession.endedAt =
-        new Date().toISOString();
-
-
-    // 保存这一轮已经完成的数据引用。
-    //
-    // 后面 currentSession 可以被下一轮覆盖，
-    // completedSession 仍然指向刚完成的 Session。
-    const completedSession =
-        currentSession;
-
-
-    // --------------------------------------------------------
-    // 2. Exit Current Training State
-    // --------------------------------------------------------
-
+    currentSession.status ||= "complete";
+    currentSession.activeDurationMs ??= activeMilliseconds();
+    stopTimer();
+    currentSession.endTime = performance.now();
+    currentSession.endedAt = new Date().toISOString();
+    // Persist the exact completed report before any network request or progress transition.
+    const completedSession = currentSession;
+    const durable = pendingQueue.put(completedSession);
     sessionActive = false;
-
     currentAttempt = null;
-
     target.style.display = "none";
-
-
-    console.log(
-        "Training Session completed:",
-        completedSession
-    );
-
-
-    // --------------------------------------------------------
-    // 3. Advance Experiment
-    // --------------------------------------------------------
-
-    currentExperimentIndex++;
-
-
-    if (
-        currentExperimentIndex
-        >= experimentSchedule.length
-    ) {
-        experimentFinished = true;
-
-        console.log(
-            "Experiment completed:",
-            completedSession.experimentId
-        );
-
-        // 整个 Experiment 完成后，
-        // 下一轮 Experiment 才使用新的 ID。
-        advanceExperimentId();
-    }
-
-
-    // --------------------------------------------------------
-    // 4. Leave Pointer Lock
-    //
-    // 不需要等网络请求完成才让玩家退出训练状态。
-    // --------------------------------------------------------
-
+    invalidateRecommendation();
     document.exitPointerLock();
-
-
-    // --------------------------------------------------------
-    // 5. Persist Raw Session
-    //
-    // 现在才进入 Backend / SQLite。
-    // 即使失败，也会自动 fallback 到 JSON。
-    // --------------------------------------------------------
-
-    await persistCompletedSession(
-        completedSession
-    );
+    if (!durable) {
+        setSaveStatus("浏览器存储不可用；数据仅在当前页面内存中，请立即导出并保持页面打开。");
+        try { exportPendingSessions(); } catch (error) { /* Keep the in-memory payload for manual retry. */ }
+    }
+    await retryPendingSessions();
 }
 
 // ------------------------------------------------------------
@@ -716,10 +751,30 @@ async function completeSession() {
 // ------------------------------------------------------------
 
 trainerArea.addEventListener("click", async () => {
+    // Ignore programmatic clicks when Home is visible; hidden geometry cannot define a protocol.
+    if (trainerArea.closest?.("[hidden]")) return;
+    // Avoid collecting against unfinished saves or a recommendation in progress.
+    if (experimentLoading || sessionSaving || planBusy || pointerLockPending || countdown || hasUnconfirmedData()) {
+        if (hasUnconfirmedData()) setSaveStatus("请先重试或导出待上传数据；不会创建重复训练条件。");
+        return;
+    }
+    if (!activeExperiment || experimentFinished) {
+        try {
+            // Creating a new experiment is explicit; refresh alone keeps the completed evidence.
+            await refreshExperiment({initial: !activeExperiment, startNew: experimentFinished});
+        } catch (error) {
+            console.error(error);
+        }
+        return; // Pointer Lock needs a fresh user gesture after asynchronous setup.
+    }
     if (document.pointerLockElement === trainerArea) {
         return;
     }
 
+    pointerLockPending = true;
+    publishState();
+    // Page chrome is outside the unchanged viewport-sized surface; show all targets before locking.
+    trainerArea.scrollIntoView?.({block: "start", behavior: "instant"});
     try {
         /*
          * 请求不经过操作系统鼠标加速度处理的输入。
@@ -728,6 +783,7 @@ trainerArea.addEventListener("click", async () => {
          * 我们希望相同物理鼠标位移尽可能产生相同 raw delta，
          * 而不是因为移动速度不同，被系统额外放大。
          */
+        currentInputMode = "unadjusted_requested";
         await trainerArea.requestPointerLock({
             unadjustedMovement: true
         });
@@ -742,7 +798,17 @@ trainerArea.addEventListener("click", async () => {
             error
         );
 
-        trainerArea.requestPointerLock();
+        currentInputMode = "adjusted_fallback";
+        try {
+            await trainerArea.requestPointerLock();
+        } catch (fallbackError) {
+            experimentError = "浏览器无法锁定鼠标；未开始训练，请检查权限后重试。";
+            updateExperimentMessage();
+        }
+    }
+    finally {
+        pointerLockPending = false;
+        publishState();
     }
 });
 
@@ -754,48 +820,65 @@ trainerArea.addEventListener("click", async () => {
 // 当前究竟是哪一个 DOM 元素拥有 Pointer Lock。
 // ------------------------------------------------------------
 
-document.addEventListener("pointerlockchange", () => {
+document.addEventListener("pointerlockchange", async () => {
     const isLocked = document.pointerLockElement === trainerArea;
 
     if (isLocked) {
+        if(paused && sessionActive) {
+            try {
+                const state=await fetchJson(`/experiments/${encodeURIComponent(currentSession.experimentId)}`,{cache:"no-store"});
+                if(state.experiment_id!==currentSession.experimentId || state.ended || state.completed_count!==currentSession.experimentOrder-1){
+                    await finishIncomplete("condition_changed");return;
+                }
+            }catch(error){
+                document.exitPointerLock();lifecycleMessage(`无法确认继续条件，仍保持暂停：${error.message}`);return;
+            }
+            paused=false;pauseRequested=false;activeStarted=performance.now();
+            trainerArea.scrollIntoView?.({block:"start",behavior:"instant"});
+            startMessage.style.display="none";spawnTarget();armLimit();publishState();return;
+        }
 
-        // 实验已经结束，不再启动 Session。
-        if (experimentFinished) {
+        // A late browser lock after leaving Test must never collect against hidden geometry.
+        if (trainerArea.closest?.("[hidden]")) {
             document.exitPointerLock();
             return;
         }
 
-        startMessage.style.display =
-            "none";
-
-        startSession();
+        try {
+            // Re-read after locking: another tab may have committed this condition meanwhile.
+            await refreshExperiment();
+            if (document.pointerLockElement !== trainerArea) return;
+            if (experimentFinished || sessionSaving || planBusy) {
+                document.exitPointerLock();
+                return;
+            }
+            startMessage.style.display = "none";
+            // Restoration and modal focus changes may scroll while the server read is pending.
+            trainerArea.scrollIntoView?.({block: "start", behavior: "instant"});
+            const seconds=activeExperiment.protocol.settings?.countdown_seconds || 0;
+            if(seconds) {
+                countdown=true;publishState();
+                for(let remaining=seconds;remaining>0;remaining--) {
+                    startMessage.style.display="block";startMessage.textContent=`${remaining}`;
+                    await new Promise(resolve=>setTimeout(resolve,1000));
+                    if(document.pointerLockElement!==trainerArea){countdown=false;return;}
+                }
+                countdown=false;publishState();startMessage.style.display="none";
+            }
+            startSession();
+        } catch (error) {
+            document.exitPointerLock();
+        }
 
     } else {
-
+        countdown=false;
+        if(pauseRequested && paused){publishState();return;}
+        if(sessionActive){void finishIncomplete("escape");return;}
         target.style.display =
             "none";
 
 
-        // ------------------------------------------------
-        // 如果 Session 还没完成用户就按 Esc，
-        // 当前 Session 直接作废。
-        //
-        // 不增加 experiment index，
-        // 重新进入时仍然打同一个 condition。
-        // ------------------------------------------------
-
-        if (sessionActive) {
-            console.warn(
-                "Session aborted. " +
-                "Current data discarded."
-            );
-
-            sessionActive = false;
-
-            currentSession = null;
-            currentAttempt = null;
-        }
-
+        // Escape archives interrupted data above; an idle unlock only restores the prompt.
 
         startMessage.style.display =
             "block";
@@ -834,7 +917,10 @@ document.addEventListener("pointerlockchange", () => {
 
 document.addEventListener(
     "mousedown",
-    () => {
+    (event) => {
+
+        // Only the primary button records shots; other buttons must not change evidence.
+        if (event.button !== 0) return;
 
         if (
             document.pointerLockElement
@@ -845,6 +931,7 @@ document.addEventListener(
 
         if (
             !sessionActive
+            || paused
             || currentAttempt === null
         ) {
             return;
@@ -858,14 +945,16 @@ document.addEventListener(
         const hit =
             isTargetHit();
 
+        const shotTime=performance.now();
         currentAttempt.clicks.push({
-            time: performance.now(),
+            time: shotTime,
 
             x: crosshairX,
             y: crosshairY,
 
             hit
         });
+        shotFeedback(hit,frozenSettings,trainerArea);
 
 
         // ----------------------------------------------------
@@ -1058,11 +1147,10 @@ async function generateExperimentPlan() {
     }
 
 
-    // 如果当前仍然在训练，
-    // 不应该同时进入实验规划流程。
-    if (sessionActive) {
+    // Do not plan while training, saving, restoring or another plan is in progress.
+    if (sessionActive || sessionSaving || experimentLoading || planBusy || hasUnconfirmedData()) {
         agentStatus.textContent =
-            "请先完成当前训练 Session。";
+            "请先完成训练并确认待上传数据保存。";
 
         return;
     }
@@ -1072,15 +1160,24 @@ async function generateExperimentPlan() {
     // Loading State
     // --------------------------------------------------------
 
+    planBusy = true;
+    planFailureCode = null;
+    planAbortController = new AbortController();
+    document.getElementById("cancelPlanButton").disabled = false;
     generatePlanButton.disabled = true;
 
     agentStatus.textContent =
         "AI Aim Coach 正在分析现有实验数据...";
 
     agentResult.hidden = true;
+    publishState();
 
 
     try {
+        // Refresh the selected experiment before requesting evidence; no result cache is reused.
+        await refreshExperiment();
+        const requestedExperimentId = activeExperiment.experiment_id;
+        const requestVersion = ++planRequestVersion;
 
         // ----------------------------------------------------
         // Browser
@@ -1090,10 +1187,11 @@ async function generateExperimentPlan() {
         // FastAPI /agent/plan
         // ----------------------------------------------------
 
-        const response = await fetch(
+        const data = await fetchJson(
             AGENT_PLAN_API,
             {
                 method: "POST",
+                signal: planAbortController.signal,
 
                 headers: {
                     "Content-Type":
@@ -1102,23 +1200,29 @@ async function generateExperimentPlan() {
 
                 body: JSON.stringify({
                     goal: goal,
+                    experiment_id: requestedExperimentId,
                 }),
-            }
+            }, planTimeoutMs
         );
-
-
-        // HTTP 4xx / 5xx 不会自动让 fetch 抛异常，
-        // 所以这里必须主动检查。
-        if (!response.ok) {
-
-            throw new Error(
-                `Agent API failed: `
-                + `${response.status}`
-            );
+        if (data.status !== "ok") throw new Error("Agent 未返回已验证的成功状态。");
+        // A second read detects uploads from other tabs while the model was running.
+        const latestState = await fetchJson(
+            `/experiments/${encodeURIComponent(requestedExperimentId)}`, {cache: "no-store"}
+        );
+        if (requestVersion !== planRequestVersion ||
+            data.evidence.experiment_id !== requestedExperimentId ||
+            activeExperiment.experiment_id !== requestedExperimentId ||
+            JSON.stringify(latestState.completed_session_ids) !== JSON.stringify(data.evidence.session_ids)) {
+            // A stale response must never restore an experiment the user has already left.
+            if (activeExperiment.experiment_id === requestedExperimentId) {
+                applyExperimentState(latestState);
+            }
+            agentStatus.textContent = "实验数据已更新，请重新生成建议。";
+            agentResult.hidden = true;
+            return;
         }
-
-
-        const data = await response.json();
+        // The snapshot may include a save committed just after the initial progress read.
+        applyExperimentState(latestState);
 
 
         // ----------------------------------------------------
@@ -1127,7 +1231,7 @@ async function generateExperimentPlan() {
         // {
         //     goal,
         //     answer,
-        //     tools_used
+        //     tools_used, evidence
         // }
         // ----------------------------------------------------
 
@@ -1137,10 +1241,13 @@ async function generateExperimentPlan() {
         agentTools.textContent =
             data.tools_used.join(" → ");
 
+        recommendationEvidence = data.evidence;
         agentResult.hidden = false;
 
         agentStatus.textContent =
-            "Experiment plan generated.";
+            `Experiment ${data.evidence.experiment_id} | ${data.evidence.session_count} Sessions` +
+            ` | Snapshot ${data.evidence.snapshot_id.slice(0, 12)}` +
+            (data.evidence.incomplete ? " | 实验尚未完成" : " | 实验完成");
 
     } catch (error) {
 
@@ -1148,13 +1255,18 @@ async function generateExperimentPlan() {
             "Failed to generate experiment plan:",
             error
         );
+        planFailureCode = error.code || (error.cancelled ? "cancelled" : "request_failed");
 
         agentStatus.textContent =
-            "无法生成实验建议，请检查 Backend 是否正在运行。";
+            `无法生成实验建议：${error.message}`;
 
     } finally {
 
+        planBusy = false;
+        planAbortController = null;
+        document.getElementById("cancelPlanButton").disabled = true;
         generatePlanButton.disabled = false;
+        publishState();
     }
 }
 
@@ -1163,3 +1275,101 @@ generatePlanButton.addEventListener(
     "click",
     generateExperimentPlan
 );
+// Restore server state after refresh; browser counters are not a source of truth.
+async function restoreApplication() {
+    const pending = pendingQueue.list();
+    // Recover queued data before allowing a new experiment or a new recommendation.
+    if (pending.sessions.length) {
+        try {
+            if (!sessionStorage.getItem("aimcoachSelectedExperimentId")) {
+                sessionStorage.setItem("aimcoachSelectedExperimentId", pending.sessions[0].experimentId);
+            }
+        } catch (error) { /* Server state still owns progress if tab storage is unavailable. */ }
+        setSaveStatus("发现待上传数据，正在恢复并确认保存...");
+    }
+    try { await refreshExperiment({initial: true}); }
+    catch (error) { setSaveStatus(`无法同步服务器：${error.message} 待上传数据未删除。`); }
+    if (pending.sessions.length || pending.errors.length) await retryPendingSessions();
+}
+// The shell awaits initial restoration before allowing a page transition.
+export const ready = restoreApplication();
+
+document.getElementById("retrySaveButton").addEventListener("click", () => { void retryPendingSessions(); });
+document.getElementById("exportPendingButton").addEventListener("click", () => {
+    try { exportPendingSessions(); }
+    catch (error) { setSaveStatus("下载未成功触发；待上传数据仍保留，请保持页面打开。"); }
+});
+document.getElementById("cancelPlanButton").addEventListener("click", () => {
+    invalidateRecommendation();
+    planAbortController?.abort();
+});
+document.addEventListener("pointerlockerror", () => {
+    // Some browsers emit the terminal error event without settling the lock Promise.
+    pointerLockPending = false;
+    experimentError = "鼠标锁定失败；本轮尚未开始，可检查浏览器权限后重试。";
+    updateExperimentMessage();
+});
+document.addEventListener("keydown",event=>{
+    if(!sessionActive||event.repeat||event.ctrlKey||event.metaKey||event.altKey)return;
+    if(event.code==="KeyP"){event.preventDefault();if(paused)trainerArea.click();else pauseTraining();}
+    if(event.code==="KeyE"){event.preventDefault();void finishIncomplete("user_ended");}
+});
+document.getElementById("pauseTraining").addEventListener("click",()=>{
+    if(paused){trainerArea.click();}else pauseTraining();
+});
+document.getElementById("endTraining").addEventListener("click",()=>{void finishIncomplete("user_ended");});
+window.addEventListener("beforeunload", (event) => {
+    if(sessionActive && currentSession){
+        // Only synchronous durable storage is reliable during page exit. Replay uses the same ID.
+        const interrupted={...currentSession,status:"incomplete",interruptionReason:"page_exit",activeDurationMs:activeMilliseconds(),endTime:performance.now(),endedAt:new Date().toISOString(),interruptedAttempt:currentAttempt};
+        pendingQueue.put(interrupted);
+        // If the browser cancels navigation, the same ID must not continue mutating after queuing.
+        sessionActive=false;paused=false;pauseRequested=false;currentAttempt=null;stopTimer();
+        target.style.display="none";document.exitPointerLock();
+        setSaveStatus("退出时的未完成记录已进入待上传队列；若继续留在此页，请重试确认保存。");
+    }
+    // Warn only when browser storage failed and unsaved data survives solely in memory.
+    if (pendingQueue.memoryOnly && hasUnconfirmedData()) {
+        event.preventDefault();
+        event.returnValue = "";
+    }
+});
+
+window.addEventListener("focus", () => {
+    if (!sessionActive && !sessionSaving && !planBusy && !experimentLoading) {
+        void refreshExperiment().catch(console.error);
+    }
+});
+
+window.addEventListener("resize", () => {
+    // A resized viewport would mix coordinate systems inside the same fixed-size protocol.
+    if (sessionActive && (trainerArea.clientWidth !== currentSession.trainerWidth ||
+                          trainerArea.clientHeight !== currentSession.trainerHeight)) {
+        experimentError = "窗口尺寸已变化；本次未完成 Session 已中止，请恢复实验尺寸后重试。";
+        document.exitPointerLock();
+    }
+});
+
+window.addEventListener("storage", (event) => {
+    if (event.key === "aimcoachEvidenceRevision") {
+        // Cross-tab notifications only invalidate; evidence is always fetched from the server.
+        invalidateRecommendation();
+        if (!sessionActive && !sessionSaving && !planBusy && !experimentLoading) {
+            void refreshExperiment().catch(console.error);
+        }
+    }
+});
+
+export async function endSelectedExperiment() {
+    if(!canLeaveTrainingPage()||sessionSaving||planBusy||experimentLoading||hasUnconfirmedData()||!activeExperiment){
+        lifecycleMessage("请先结束当前 Session、退出鼠标锁定并确认所有待上传数据。");return;
+    }
+    experimentLoading=true;updateExperimentMessage();
+    try {
+        const state=await fetchJson(`/experiments/${encodeURIComponent(activeExperiment.experiment_id)}/end`,{method:"POST"});
+        applyExperimentState(state);invalidateRecommendation();
+        lifecycleMessage("实验已结束，原始数据保留。点击训练区创建新设置实验，再次点击开始。");
+    }catch(error){lifecycleMessage(`结束实验失败：${error.message}`);}
+    finally{experimentLoading=false;updateExperimentMessage();}
+}
+document.getElementById("endExperiment").addEventListener("click",()=>{void endSelectedExperiment();});

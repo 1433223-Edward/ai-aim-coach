@@ -1,0 +1,238 @@
+TAP version 13
+# (node:38184) ExperimentalWarning: VM Modules is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: refresh restores server identity, schedule and confirmed progress
+ok 1 - refresh restores server identity, schedule and confirmed progress
+  ---
+  duration_ms: 40.4201
+  type: 'test'
+  ...
+# Subtest: only the primary button can record shots or advance attempts
+ok 2 - only the primary button can record shots or advance attempts
+  ---
+  duration_ms: 12.0505
+  type: 'test'
+  ...
+# Subtest: navigation waits for pending Pointer Lock and aligns the original coordinate surface first
+ok 3 - navigation waits for pending Pointer Lock and aligns the original coordinate surface first
+  ---
+  duration_ms: 9.0213
+  type: 'test'
+  ...
+# Subtest: a late Pointer Lock event on a hidden Test page cannot start collection
+ok 4 - a late Pointer Lock event on a hidden Test page cannot start collection
+  ---
+  duration_ms: 9.3759
+  type: 'test'
+  ...
+# Subtest: presentation subscribers cannot mutate protocol copies or interrupt a committed save
+ok 5 - presentation subscribers cannot mutate protocol copies or interrupt a committed save
+  ---
+  duration_ms: 15.7776
+  type: 'test'
+  ...
+# Subtest: available browser environment is preserved without assuming unknown device settings
+ok 6 - available browser environment is preserved without assuming unknown device settings
+  ---
+  duration_ms: 23.4284
+  type: 'test'
+  ...
+# Subtest: two pages share identity and re-read progress before training
+ok 7 - two pages share identity and re-read progress before training
+  ---
+  duration_ms: 23.2876
+  type: 'test'
+  ...
+# Subtest: pending and failed uploads never advance local progress
+ok 8 - pending and failed uploads never advance local progress
+  ---
+  duration_ms: 24.1495
+  type: 'test'
+  ...
+# Subtest: completed experiment remains selected after refresh until explicit new start
+ok 9 - completed experiment remains selected after refresh until explicit new start
+  ---
+  duration_ms: 10.2413
+  type: 'test'
+  ...
+# Subtest: recommendation sends explicit identity and discards evidence changed during model calls
+ok 10 - recommendation sends explicit identity and discards evidence changed during model calls
+  ---
+  duration_ms: 11.9108
+  type: 'test'
+  ...
+# Subtest: cross-tab update invalidates answers and focus reloads server progress
+ok 11 - cross-tab update invalidates answers and focus reloads server progress
+  ---
+  duration_ms: 11.4394
+  type: 'test'
+  ...
+# Subtest: viewport mismatch prevents collection and resize aborts an unfinished session
+ok 12 - viewport mismatch prevents collection and resize aborts an unfinished session
+  ---
+  duration_ms: 13.5668
+  type: 'test'
+  ...
+# Subtest: an older response cannot restore a previously selected experiment
+ok 13 - an older response cannot restore a previously selected experiment
+  ---
+  duration_ms: 10.535
+  type: 'test'
+  ...
+# Subtest: notification storage failure does not turn a committed save into an error
+ok 14 - notification storage failure does not turn a committed save into an error
+  ---
+  duration_ms: 12.5321
+  type: 'test'
+  ...
+# Subtest: refresh preserves this tab's selected experiment when another tab starts a new one
+ok 15 - refresh preserves this tab's selected experiment when another tab starts a new one
+  ---
+  duration_ms: 17.9828
+  type: 'test'
+  ...
+# Subtest: a missing stored selection is reported instead of silently replacing identity
+ok 16 - a missing stored selection is reported instead of silently replacing identity
+  ---
+  duration_ms: 7.5837
+  type: 'test'
+  ...
+# Subtest: failed uploads survive refresh and retry the same immutable Session
+ok 17 - failed uploads survive refresh and retry the same immutable Session
+  ---
+  duration_ms: 22.6254
+  type: 'test'
+  ...
+# Subtest: lost acknowledgement retries the same ID without duplicate storage
+ok 18 - lost acknowledgement retries the same ID without duplicate storage
+  ---
+  duration_ms: 16.7677
+  type: 'test'
+  ...
+# Subtest: duplicate retry clicks cannot start a second flush
+ok 19 - duplicate retry clicks cannot start a second flush
+  ---
+  duration_ms: 14.7345
+  type: 'test'
+  ...
+# Subtest: timeout releases saving state and keeps durable pending data
+ok 20 - timeout releases saving state and keeps durable pending data
+  ---
+  duration_ms: 54.7202
+  type: 'test'
+  ...
+# Subtest: wrong acknowledgement is not treated as a successful save
+ok 21 - wrong acknowledgement is not treated as a successful save
+  ---
+  duration_ms: 12.8216
+  type: 'test'
+  ...
+# Subtest: corrupt pending state blocks collection and remains manually exportable
+ok 22 - corrupt pending state blocks collection and remains manually exportable
+  ---
+  duration_ms: 10.4706
+  type: 'test'
+  ...
+# Subtest: cancelled model waiting never displays a late answer
+ok 23 - cancelled model waiting never displays a late answer
+  ---
+  duration_ms: 10.6389
+  type: 'test'
+  ...
+# Subtest: pointer lock fallback and error paths do not leave an active Session
+ok 24 - pointer lock fallback and error paths do not leave an active Session
+  ---
+  duration_ms: 8.9331
+  type: 'test'
+  ...
+# Subtest: illegal restored completion state is rejected instead of trained
+ok 25 - illegal restored completion state is rejected instead of trained
+  ---
+  duration_ms: 8.8476
+  type: 'test'
+  ...
+# Subtest: quota failures keep raw data in memory and warn before closing
+ok 26 - quota failures keep raw data in memory and warn before closing
+  ---
+  duration_ms: 16.1779
+  type: 'test'
+  ...
+# (node:36068) ExperimentalWarning: VM Modules is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: actual app initializes no trainer on Home and reuses one controller across hash navigation
+ok 27 - actual app initializes no trainer on Home and reuses one controller across hash navigation
+  ---
+  duration_ms: 57.7297
+  type: 'test'
+  ...
+# Subtest: direct Test hash initializes once and blocked navigation restores URL without hiding training
+ok 28 - direct Test hash initializes once and blocked navigation restores URL without hiding training
+  ---
+  duration_ms: 5.8695
+  type: 'test'
+  ...
+# Subtest: navigation cannot hide Test while its first restoration is still in flight
+ok 29 - navigation cannot hide Test while its first restoration is still in flight
+  ---
+  duration_ms: 3.519
+  type: 'test'
+  ...
+# Subtest: Drawer empty state never invokes a model or analysis request and restores focus on Escape
+ok 30 - Drawer empty state never invokes a model or analysis request and restores focus on Escape
+  ---
+  duration_ms: 5.599
+  type: 'test'
+  ...
+# Subtest: Drawer renders real metric keys, preserves raw limitations, and labels a different recommendation snapshot
+ok 31 - Drawer renders real metric keys, preserves raw limitations, and labels a different recommendation snapshot
+  ---
+  duration_ms: 7.9798
+  type: 'test'
+  ...
+# Subtest: Drawer rejects mismatched evidence and hides results that finish after closing
+ok 32 - Drawer rejects mismatched evidence and hides results that finish after closing
+  ---
+  duration_ms: 5.5772
+  type: 'test'
+  ...
+# Subtest: Pointer Lock blocks Drawer entry; loading, failure and success do not change training geometry
+ok 33 - Pointer Lock blocks Drawer entry; loading, failure and success do not change training geometry
+  ---
+  duration_ms: 5.7004
+  type: 'test'
+  ...
+# Subtest: CSS preserves coordinate geometry and reduced motion; HTML loads only one module entry
+ok 34 - CSS preserves coordinate geometry and reduced motion; HTML loads only one module entry
+  ---
+  duration_ms: 25.1306
+  type: 'test'
+  ...
+# (node:22768) ExperimentalWarning: VM Modules is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: settings reject malformed preferences and preserve valid values across reload
+ok 35 - settings reject malformed preferences and preserve valid values across reload
+  ---
+  duration_ms: 8.5047
+  type: 'test'
+  ...
+# Subtest: pause retains completed attempts, resume creates a new active attempt, stop queues a distinct incomplete report
+ok 36 - pause retains completed attempts, resume creates a new active attempt, stop queues a distinct incomplete report
+  ---
+  duration_ms: 26.8504
+  type: 'test'
+  ...
+# Subtest: page exit archives once even if navigation is cancelled and retried
+ok 37 - page exit archives once even if navigation is cancelled and retried
+  ---
+  duration_ms: 11.6828
+  type: 'test'
+  ...
+1..37
+# tests 37
+# suites 0
+# pass 37
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1672.3697

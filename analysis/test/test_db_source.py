@@ -127,5 +127,24 @@ def main() -> None:
     )
 
 
+import unittest
+
+
+class DatabaseFixtureTests(unittest.TestCase):
+    def test_isolated_fixture(self):
+        from unittest.mock import patch
+        from pathlib import Path
+        import tempfile
+        from backend import session_store as store
+        from scripts.seed_demo import seed_demo
+        with tempfile.TemporaryDirectory() as directory:
+            destination = Path(directory) / "source.db"
+            info = seed_demo(destination)
+            with patch.object(store, "DB_PATH", destination):
+                sessions = get_sessions_by_experiment(info["experiment_id"])
+                self.assertEqual(len(sessions), 9)
+                self.assertEqual(get_session(sessions[0]["sessionId"]), sessions[0])
+
+
 if __name__ == "__main__":
-    main()
+    unittest.main()

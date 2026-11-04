@@ -1,13 +1,11 @@
-from analysis.analysis_runtime import (
-    analyze_latest_experiment,
-)
+from analysis.analysis_runtime import AnalysisSnapshot
 # ============================================================
 # AI Aim Coach
 # Analysis Tools v0.1
 #
 # 职责边界：
 #
-# analysis_result.json
+# Request-scoped analysis snapshot
 #        ↓
 #     Tools
 #        ↓
@@ -25,30 +23,21 @@ from analysis.analysis_runtime import (
 # - 做 Agent 决策
 # ============================================================
 
-def _get_current_analysis_result() -> dict:
-    return analyze_latest_experiment()
+def _get_current_analysis_result(snapshot: AnalysisSnapshot) -> dict:
+    # Tools only read the snapshot supplied by their caller; never select latest.
+    return snapshot.result()
 
 # ============================================================
 # Tool 1
 # get_analysis_summary()
 # ============================================================
 
-def get_analysis_summary() -> dict:
-    """
-    返回当前 sensitivity experiment 的总体状态。
-
-    适合 Agent 第一次了解：
-    - 测试过哪些 sensitivity
-    - 有多少实验数据
-    - 当前有哪些可靠 finding
-    - 当前证据有哪些限制
-
-    不返回完整 profile,
-    避免一次塞入过多统计细节。
-    """
-    result = _get_current_analysis_result()
+def get_analysis_summary(*, snapshot: AnalysisSnapshot) -> dict:
+    """Return scope, findings and limitations from the caller's fixed evidence."""
+    result = _get_current_analysis_result(snapshot)
 
     return {
+        "evidence": snapshot.metadata(),
         "analysis_type": result["analysis_type"],
         "schema_version": result["schema_version"],
 
@@ -67,23 +56,16 @@ def get_analysis_summary() -> dict:
 
 def get_sensitivity_profile(
     sensitivity: float,
+    *, snapshot: AnalysisSnapshot,
 ) -> dict:
-    """
-    返回某一个 sensitivity 的完整确定性分析结果。
-
-    这里只回答：
-    “这个 sensitivity 的实验表现是什么？”
-
-    不回答：
-    “这个 sensitivity 是否适合用户？”
-    """
-    result = _get_current_analysis_result()
+    """Return a tested condition's profile without making a recommendation."""
+    result = _get_current_analysis_result(snapshot)
 
     profiles = result["sensitivity_profiles"]
 
     for profile in profiles:
         if profile["sensitivity"] == sensitivity:
-            return profile
+            return {**profile, "evidence": snapshot.metadata()}
 
     available = [
         profile["sensitivity"]
@@ -103,18 +85,9 @@ def get_sensitivity_profile(
 
 def compare_sensitivities(
     sensitivities: list[float],
+    *, snapshot: AnalysisSnapshot,
 ) -> dict:
-    """
-    返回指定 sensitivity 的并列证据。
-
-    注意：
-    这里不重新做任何统计计算。
-
-    只是从 analysis_result.json 中：
-    1. 找到指定 profiles
-    2. 找到和这些 sensitivity 有关的 findings
-    3. 返回给未来 Agent
-    """
+    """Select profiles and related findings from one snapshot; do not recompute."""
 
     if len(sensitivities) < 2:
         raise ValueError(
@@ -122,7 +95,7 @@ def compare_sensitivities(
             "at least two sensitivities."
         )
 
-    result = _get_current_analysis_result()
+    result = _get_current_analysis_result(snapshot)
 
     profiles_by_sensitivity = {
         profile["sensitivity"]: profile
@@ -178,6 +151,7 @@ def compare_sensitivities(
             relevant_findings.append(finding)
 
     return {
+        "evidence": snapshot.metadata(),
         "sensitivities": sensitivities,
 
         "profiles": selected_profiles,

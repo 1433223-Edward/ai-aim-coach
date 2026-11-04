@@ -2,6 +2,8 @@ import math
 from collections import defaultdict
 from statistics import mean, median, stdev
 
+from analysis.session_validator import validate_session_integrity
+
 
 # ============================================================
 # AI Aim Coach
@@ -50,15 +52,11 @@ def validate_analysis_dataset(
     验证这一批 Sessions 是否可以作为同一个
     Experiment Dataset 进入分析。
 
-    注意：
-    Session 自身 Raw Data 是否完整，
-    主要由 Session Validator 负责。
-
-    这里关注的是：
-    “这些 Session 能不能放在一起分析？”
+    复用 Session Validator 校验 Raw Data，保护来自数据库、文件或
+    直接调用的输入；随后检查是否属于同一个 Experiment。
     """
 
-    if not sessions:
+    if not isinstance(sessions, list) or not sessions:
         raise ValueError(
             "Analysis dataset is empty."
         )
@@ -73,11 +71,24 @@ def validate_analysis_dataset(
     }
 
     problems = []
+    # A repeated identity is the same observation, not an additional sample.
+    session_ids = set()
 
     for index, session in enumerate(
         sessions,
         start=1,
     ):
+        integrity_errors = validate_session_integrity(session)
+        if integrity_errors:
+            problems.extend(
+                f"Session {index}: {error}" for error in integrity_errors
+            )
+            continue
+
+        if session["sessionId"] in session_ids:
+            problems.append(f"Session {index}: duplicate sessionId.")
+        session_ids.add(session["sessionId"])
+
         missing_fields = (
             required_fields
             - session.keys()
@@ -318,6 +329,13 @@ def calculate_attempt_metrics(
         )
 
 
+    # Finite input coordinates can still overflow during subtraction or path sums.
+    # Reject unrepresentable metrics rather than publish NaN or false zero efficiency.
+    if not all(math.isfinite(value) for value in (
+        final_hit_time_ms, first_click_error_px, direct_distance, path_length, path_efficiency
+    )):
+        raise ValueError("Attempt metrics exceed the finite numeric range.")
+
     return {
         "final_hit_time_ms":
             final_hit_time_ms,
@@ -356,23 +374,15 @@ def calculate_statistics(
         )
 
 
-    return {
-        "sample_count":
-            len(values),
-
-        "mean":
-            mean(values),
-
-        "median":
-            median(values),
-
-        "std":
-            (
-                stdev(values)
-                if len(values) >= 2
-                else 0.0
-            ),
-    }
+    # Aggregation can overflow even when every individual metric is finite.
+    try:
+        result = {"sample_count": len(values), "mean": mean(values),
+                  "median": median(values), "std": stdev(values) if len(values) >= 2 else 0.0}
+        if not all(math.isfinite(value) for value in result.values()):
+            raise ValueError("Statistics exceed the finite numeric range.")
+    except OverflowError:
+        raise ValueError("Statistics exceed the finite numeric range.") from None
+    return result
 
 
 def calculate_miss_attempt_rate(

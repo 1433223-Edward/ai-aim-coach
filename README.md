@@ -372,7 +372,8 @@ Request：
 
 ```json
 {
-  "goal": "我想提高 Flick 速度，但不希望明显牺牲稳定性。"
+  "goal": "我想提高 Flick 速度，但不希望明显牺牲稳定性。",
+  "experiment_id": "<GET /experiments/current 返回的 ID>"
 }
 ```
 
@@ -381,6 +382,11 @@ Response：
 ```json
 {
   "goal": "...",
+  "status": "ok",
+  "request_id": "...",
+  "trace": [],
+  "usage": {},
+  "evidence": {"experiment_id": "...", "snapshot_id": "...", "incomplete": true},
   "answer": "...",
   "tools_used": [
     "get_analysis_summary",
@@ -421,7 +427,43 @@ AimCoach/
 └── README.md
 ```
 
+## P0 Reliability Workflow
+
+默认没有 `DASHSCOPE_API_KEY` 也可启动训练、Session 保存/查询和确定性分析；只有 Agent 推荐需要配置模型。缺 Key 返回明确的 503，不生成模拟建议。
+
+新 Demo 实验为三档 sensitivity × 三次重复 × 每 Session 3 个目标；下文 9×20 的正式实验描述是历史证据，不能混为当前协议。实验由后端创建并恢复，Agent 请求必须带 `experiment_id`。
+
+离线检查（FastAPI/Pydantic 环境、Python 3.12 和 Node 22；不需要 Key/真实数据库）：
+
+```powershell
+python -B scripts/run_checks.py
+```
+
+`requirements-runtime.txt` 安装最小本地服务；`requirements-agent.txt` 额外安装现有 OpenAI SDK；`requirements-test.txt` 用于离线测试。三者共享 `requirements-lock.txt` 的依赖约束。原 `requirements.txt` 保留为历史环境清单。CI 配置使用同一检查命令，远程 CI 尚未运行。
+
+明确标注为合成数据的独立 Demo 库（禁止使用原训练数据库路径）：
+
+```powershell
+python -B scripts/seed_demo.py --db "$env:TEMP/aimcoach-synthetic-demo.db"
+$env:AIMCOACH_DB_PATH = "$env:TEMP/aimcoach-synthetic-demo.db"
+.\run.ps1
+```
+
+seed 可重复执行；若目标包含非 Demo 数据会拒绝，不覆盖、不迁移真实记录。历史 JSON adapter 仅用于只读 fixture 验证，来源 hash 见 tests/fixtures/legacy_manifest.json。
+
+已保存 Session 的确定性分析：`GET /experiments/{experiment_id}/analysis`。Agent 响应附 status、request_id、trace 和 evidence；失败响应附安全错误码及 request ID。保存中的数据进入持久待上传队列，可重试或手动导出；相同 Session ID/内容重试不会重复写入。
+
+P0 历史交付记录见 [P0 completion report](docs/engineering-review/P0_COMPLETION_REPORT.md)。本轮最新核销见 [Engineering completion report](docs/engineering-review/ENGINEERING_COMPLETION_REPORT.md)，启动和备份见 [Local operations](docs/engineering-review/LOCAL_OPERATIONS.md)，人工操作见 [Acceptance checklist](docs/engineering-review/USER_ACCEPTANCE_CHECKLIST.md)。
+
 ## Run Locally
+
+### Home / Test Demo
+
+运行下文启动命令后，打开 `http://127.0.0.1:8000/` 或 `/#/home` 查看首页；导航或 Start Training 进入 `/#/test`。Hash 路径可直接刷新，不需要前端构建工具或 npm install。前端使用原生 ES Modules，请通过 HTTP 服务访问，不要直接打开 HTML 文件。
+
+Home 首次载入不创建实验；首次进入 Test 后恢复状态和 pending 队列，切页复用同一控制器。训练区仍是完整 `100vw × 100vh`，开始时滚动对齐视口；AI Insights 为覆盖式 Drawer，不缩放训练区。训练中先按 Esc 再切页或打开面板。打开面板只查询确定性分析，点击生成才请求模型。
+
+完整设计、模块图、回归及人工验收见 [Frontend redesign report](docs/frontend/FRONTEND_REDESIGN_REPORT.md)。统一测试仍为 `python -B scripts/run_checks.py`；直接运行 Node 测试需加 `--experimental-vm-modules`，用于加载真实 ES Modules，浏览器运行不需要此标志。
 
 ### 1. Create / Activate Environment
 
@@ -433,10 +475,12 @@ conda activate aimcoach
 Install dependencies:
 
 ```powershell
-pip install -r requirements.txt
+python -m pip install -r requirements-runtime.txt
+# Optional Agent capability:
+python -m pip install -r requirements-agent.txt
 ```
 
-### 2. Configure Qwen API Key
+### 2. Configure Qwen API Key (optional for training / deterministic analysis)
 
 ```powershell
 conda env config vars set DASHSCOPE_API_KEY="your-api-key"
@@ -452,7 +496,7 @@ conda activate aimcoach
 Verify:
 
 ```powershell
-echo $env:DASHSCOPE_API_KEY
+[bool]$env:DASHSCOPE_API_KEY
 ```
 
 ### 3. Start AI Aim Coach
@@ -508,7 +552,7 @@ Current MVP is intentionally limited:
 - No production user account system
 - No multi-device state synchronization
 - Agent may require multiple sequential model calls and therefore has noticeable latency
-- Session Integrity Validator is implemented but not yet part of a complete validation test suite
+- Client event consistency is validated; self-reported data cannot prove authentic physical hits
 - No public deployment yet
 
 ## Project Status
@@ -537,3 +581,10 @@ For detailed runtime failures, design decisions, validation history and engineer
 ```text
 ENGINEERING_EVIDENCE.md
 ```
+
+
+## Phase 1 Settings & Persistence
+
+Test 页面齿轮设置用于下一次新实验；当前实验配置冻结不变。P 暂停/继续（当前未完成 Attempt 重做），E 提前结束 Session；未完成记录单独归档。结束实验保留历史，随后可创建新配置实验。首次重启会新增两张归档/结束元数据表，不清空原表。
+
+完整默认值、API、备份回滚和人工验收见 [Phase 1 report](docs/phase1/PHASE1_REPORT.md)。请重启后端后通过 HTTP 刷新页面。真实持久化检查：`node --experimental-vm-modules scripts/check_phase1_persistence.cjs`，默认使用本机 aimcoach Python；其他环境可设置 `AIMCOACH_TEST_PYTHON` 为当前 Python 可执行路径。该检查模拟 DOM 输入，实际运行前端 ESM、HTTP 和临时 SQLite，不是物理鼠标 E2E。
