@@ -66,6 +66,24 @@
                 <div><span class="field-label">SENSITIVITY</span><strong id="conditionValue">—</strong><small id="conditionDetail">等待实验条件</small></div>
                 <span id="trainingStatus" class="state-badge" data-state="syncing">SYNCING</span>
             </section>
+            <section id="trainingPlanPanel" class="content-width scenario-library">
+                <h2>Personalized Training Plan</h2>
+                <p>请求将使用已配置的模型；模型不可用时明确报错。接受计划只创建实验，训练由你手动开始。</p>
+                <label>训练目标 <input id="trainingPlanGoal" maxlength="1000" value="提高定位准确率与稳定性"></label>
+                <label>总时长上限 / 秒 <input id="trainingPlanBudget" type="number" min="10" max="3600" value="120"></label>
+                <label>最多 Sessions <input id="trainingPlanSessions" type="number" min="1" max="10" value="3"></label>
+                <label>每轮最多 Attempts <input id="trainingPlanAttempts" type="number" min="5" max="100" value="20"></label>
+                <label>每轮最多秒数 <input id="trainingPlanDuration" type="number" min="10" max="120" value="60"></label>
+                <label>最高难度 <select id="trainingPlanDifficulty"><option>easy</option><option selected>normal</option><option>hard</option></select></label>
+                <label>历史开始日期 <input id="trainingPlanDateFrom" type="date"></label>
+                <label>历史结束日期 <input id="trainingPlanDateTo" type="date"></label>
+                <button id="trainingPlanRequest" class="button secondary" type="button">请求 / 重新推荐</button>
+                <button id="trainingPlanAccept" class="button quiet" type="button" disabled>接受计划</button>
+                <button id="trainingPlanReject" class="button quiet" type="button" disabled>拒绝计划</button>
+                <button id="trainingPlanEvaluate" class="button quiet" type="button" disabled>评估计划效果</button>
+                <p id="trainingPlanStatus" role="status">尚无计划。重新推荐保留旧计划与证据。</p>
+                <pre id="trainingPlanResult"></pre>
+            </section>
             <section class="content-width scenario-library"><h2>Scenario Library</h2><p>选择场景后显式创建实验。当前实验未结束时，请先使用“结束当前实验”。</p>
 <label>场景 <select id="scenarioSelect"><option value="legacy">Original Flick · 原实验</option></select></label>
 <label>难度 <select id="scenarioDifficulty"><option>easy</option><option selected>normal</option><option>hard</option></select></label>
@@ -125,6 +143,6 @@
     <label>Pointer multiplier <input name="sensitivity" type="number" min="0.1" max="5" step="0.1" required></label>
     </fieldset><button type="submit">保存偏好</button><button id="closeSettings" type="button">关闭</button><p id="settingsStatus" role="status"></p>
     </form></dialog>
-    <script type="module" src="./app.js?v=phase2-scenarios-1"></script>
+    <script type="module" src="./app.js?v=phase3-training-1"></script>
 </body>
 </html>

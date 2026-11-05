@@ -337,7 +337,7 @@ def verify_tool_result(name, arguments, result, snapshot):
         raise ValueError("Tool payload does not match the fixed evidence.")
 
 
-def run_experiment_planner(user_goal: str, experiment_id: str, *, limits=None, clock=None) -> dict:
+def run_experiment_planner(user_goal: str, experiment_id: str, *, limits=None, clock=None, training_context=None) -> dict:
     limits = limits or RuntimeLimits()
     clock = clock or time.monotonic
     # All traces and errors refer to this request; never put provider exception text in them.
@@ -352,7 +352,7 @@ def run_experiment_planner(user_goal: str, experiment_id: str, *, limits=None, c
 
     # P0-2 owns this immutable snapshot until the request returns or fails.
     try:
-        analysis_snapshot = create_analysis_snapshot(experiment_id)
+        analysis_snapshot = training_context or create_analysis_snapshot(experiment_id)
     except ExperimentNotFound:
         fail("experiment_not_found", "Experiment not found.", 404)
     except ExperimentConflict:
@@ -361,8 +361,11 @@ def run_experiment_planner(user_goal: str, experiment_id: str, *, limits=None, c
         fail("storage_unavailable", "Storage is unavailable. Retry later.", 503)
     evidence = analysis_snapshot.metadata()
     source = analysis_snapshot.result()
-    tested = {p["sensitivity"] for p in source["sensitivity_profiles"]}
-    if not tested or any(p["attempt_count"] <= 0 for p in source["sensitivity_profiles"]):
+    # The optional training profile shares this loop and its operational budgets.
+    runtime_tools = training_context.tools if training_context else TOOLS
+    runtime_prompt = training_context.prompt if training_context else SYSTEM_PROMPT
+    tested = {"training"} if training_context else {p["sensitivity"] for p in source["sensitivity_profiles"]}
+    if not training_context and (not tested or any(p["attempt_count"] <= 0 for p in source["sensitivity_profiles"])):
         fail("insufficient_evidence", "No valid metric profiles are available.")
     try:
         model, _ = model_settings()
@@ -371,7 +374,7 @@ def run_experiment_planner(user_goal: str, experiment_id: str, *, limits=None, c
         fail("model_unavailable", "Model configuration is unavailable; training and analysis remain usable.", 503)
 
     try:
-        messages = [{"role": "system", "content": SYSTEM_PROMPT},
+        messages = [{"role": "system", "content": runtime_prompt},
                     {"role": "system", "content": "Evidence scope: " + json.dumps(evidence)},
                     {"role": "user", "content": user_goal}]
         # A summary gives scope; metric tools must cover every tested condition before a plan is accepted.
@@ -392,7 +395,7 @@ def run_experiment_planner(user_goal: str, experiment_id: str, *, limits=None, c
             if remaining <= 0:
                 fail("deadline_exceeded", "Agent request exceeded its time budget.", 504)
             # Use UTF-8 bytes as a conservative fallback when the provider omits token usage.
-            input_bound = len(json.dumps({"messages": messages, "tools": TOOLS}, ensure_ascii=False).encode())
+            input_bound = len(json.dumps({"messages": messages, "tools": runtime_tools}, ensure_ascii=False).encode())
             output_budget = min(limits.completion_tokens, limits.total_tokens - tokens_used - input_bound)
             if output_budget <= 0:
                 fail("token_budget_exceeded", "Agent token budget exhausted.")
@@ -401,7 +404,7 @@ def run_experiment_planner(user_goal: str, experiment_id: str, *, limits=None, c
             model_started = clock()
             try:
                 response = client.chat.completions.create(
-                    model=model, messages=messages, tools=TOOLS,
+                    model=model, messages=messages, tools=runtime_tools,
                     tool_choice="none" if final_round else "auto",
                     timeout=min(limits.call_seconds, remaining), max_tokens=output_budget,
                 )
@@ -444,18 +447,19 @@ def run_experiment_planner(user_goal: str, experiment_id: str, *, limits=None, c
             if not calls:
                 if not isinstance(content, str) or not content.strip():
                     fail("empty_answer", "Model returned no usable answer.", 502)
-                if summary_seen and covered >= tested:
+                if summary_seen and covered >= tested and (not training_context or training_context.accepts(content)):
                     return {"answer": content, "tools_used": tools_used, "evidence": evidence,
                             "request_id": request_id, "status": "ok", "trace": trace,
                             "usage": {"model_calls": call_index, "tokens_accounted": tokens_used, "model": model,
+                                  "client_kind": "fake_client" if getattr(client, "is_fake", False) else "configured_model",
                                   "model_runs": model_runs,
-                                  "prompt_version": hashlib.sha256(SYSTEM_PROMPT.encode()).hexdigest(),
-                                  "tools_version": hashlib.sha256(json.dumps(TOOLS, sort_keys=True).encode()).hexdigest()}}
+                                  "prompt_version": hashlib.sha256(runtime_prompt.encode()).hexdigest(),
+                                  "tools_version": hashlib.sha256(json.dumps(runtime_tools, sort_keys=True).encode()).hexdigest()}}
                 # One bounded correction allows normal tool-calling models to obtain missing evidence.
                 if evidence_corrections == 0 and not final_round:
                     evidence_corrections += 1
                     messages.extend([{"role": "assistant", "content": content},
-                                     {"role": "system", "content": "Do not recommend yet. Use summary and metric tools to cover all tested conditions first. Partial experiments must be described as incomplete."}])
+                                     {"role": "system", "content": training_context.prompt if training_context else "Do not recommend yet. Use summary and metric tools to cover all tested conditions first. Partial experiments must be described as incomplete."}])
                     continue
                 fail("insufficient_evidence", "Recommendation requires successful summary and metric evidence for all tested conditions.")
             if final_round:
@@ -483,10 +487,16 @@ def run_experiment_planner(user_goal: str, experiment_id: str, *, limits=None, c
                 tool_started = clock()
                 try:
                     arguments = json.loads(call["function"]["arguments"] or "{}")
-                    validate_tool_arguments(name, arguments)
+                    if training_context:
+                        training_context.validate(name, arguments)
+                    else:
+                        validate_tool_arguments(name, arguments)
                     safe_arguments = arguments
-                    tool_result = execute_tool(name, arguments, snapshot=analysis_snapshot)
-                    verify_tool_result(name, arguments, tool_result, analysis_snapshot)
+                    if training_context:
+                        tool_result = training_context.execute(name, arguments)
+                    else:
+                        tool_result = execute_tool(name, arguments, snapshot=analysis_snapshot)
+                        verify_tool_result(name, arguments, tool_result, analysis_snapshot)
                     success = True
                 except Exception:
                     # Failed attempts are sent as explicit errors, never as analysis evidence.
@@ -504,7 +514,10 @@ def run_experiment_planner(user_goal: str, experiment_id: str, *, limits=None, c
                         fail("tool_error", "Tool recovery failed; no recommendation was accepted.")
                     continue
                 tools_used.append(name)
-                if name == "get_analysis_summary":
+                if training_context:
+                    summary_seen = training_context.history_seen
+                    covered = {"training"} if training_context.trend_seen else set()
+                elif name == "get_analysis_summary":
                     summary_seen = True
                 elif name == "get_sensitivity_profile":
                     covered.add(arguments["sensitivity"])

@@ -6,7 +6,7 @@ import sys
 ROOT = Path(__file__).resolve().parents[1]
 commands = [
     [sys.executable, "-B", "-m", "unittest", "discover", "-s", "tests", "-v"],
-    ["node", "--experimental-vm-modules", "--test", "tests/test_experiment_frontend.cjs", "tests/test_pending_queue.cjs", "tests/test_frontend_shell.cjs", "tests/test_phase1_frontend.cjs", "tests/test_phase2_ui.cjs"],
+    ["node", "--experimental-vm-modules", "--test", "tests/test_experiment_frontend.cjs", "tests/test_pending_queue.cjs", "tests/test_frontend_shell.cjs", "tests/test_phase1_frontend.cjs", "tests/test_phase2_ui.cjs", "tests/test_phase3_ui.cjs"],
     ["node", "--check", "frontend/trainer.js"],
     ["node", "--check", "frontend/pending_sessions.js"],
 ]

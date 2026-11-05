@@ -1,4 +1,5 @@
 import {bindScenarioLibrary} from "./scenario_ui.js";
+import {bindTrainingPlans} from "./training_plans.js";
 import {bindSettings} from "./settings.js";
 import {createNavigation} from "./navigation.js";
 import {bindTrainingUI} from "./training_ui.js";
@@ -22,6 +23,7 @@ async function initializeTrainer() {
         trainer = module;
         bindTrainingUI(trainer, document);
         bindScenarioLibrary(trainer,document);
+        bindTrainingPlans(trainer,document);
         drawer = bindRecommendationUI(trainer, document);
         return trainer;
     }).catch((error) => {

@@ -46,11 +46,13 @@ def seed_demo(destination: Path) -> dict:
     if destination.exists():
         with closing(sqlite3.connect(destination.as_uri() + "?mode=ro", uri=True)) as connection:
             tables = {r[0] for r in connection.execute("SELECT name FROM sqlite_master WHERE type='table'")}
-            if tables - {"sessions", "experiments", "incomplete_sessions", "experiment_endings", "scenario_sessions"}:
+            if tables - {"sessions", "experiments", "incomplete_sessions", "experiment_endings", "scenario_sessions", "training_plans"}:
                 raise ValueError("Destination contains unrelated data.")
             if "sessions" in tables and any(json.loads(r[0]).get("syntheticDemo") is not True
                                             for r in connection.execute("SELECT raw_data FROM sessions")):
                 raise ValueError("Destination contains non-demo sessions.")
+            if "training_plans" in tables and connection.execute("SELECT 1 FROM training_plans LIMIT 1").fetchone():
+                raise ValueError("Destination contains retained training plans.")
             if "scenario_sessions" in tables and connection.execute("SELECT 1 FROM scenario_sessions LIMIT 1").fetchone():
                 raise ValueError("Destination contains scenario training data.")
             if "experiment_endings" in tables and connection.execute("SELECT 1 FROM experiment_endings LIMIT 1").fetchone():

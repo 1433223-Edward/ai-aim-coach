@@ -4,7 +4,7 @@ import random
 import os
 import math
 from uuid import uuid4
-from contextlib import closing
+from contextlib import closing, nullcontext
 from pathlib import Path
 
 from analysis.session_validator import require_valid_session
@@ -110,6 +110,10 @@ def init_database() -> None:
             session_id TEXT PRIMARY KEY, experiment_id TEXT NOT NULL, experiment_order INTEGER NOT NULL,
             scenario_id TEXT NOT NULL, status TEXT NOT NULL, raw_data TEXT NOT NULL, result_json TEXT NOT NULL,
             saved_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP)""")
+        # Plans retain the pre-recommendation evidence without rewriting any training row.
+        connection.execute("""CREATE TABLE IF NOT EXISTS training_plans (
+            plan_id TEXT PRIMARY KEY, created_at TEXT NOT NULL, status TEXT NOT NULL,
+            payload TEXT NOT NULL, experiment_id TEXT UNIQUE, evaluation_json TEXT)""")
         # Additive archive: interrupted reports never enter complete-session metrics or progress.
         connection.execute("""CREATE TABLE IF NOT EXISTS incomplete_sessions (
             session_id TEXT PRIMARY KEY, experiment_id TEXT NOT NULL, started_at TEXT NOT NULL,
@@ -180,7 +184,7 @@ def _experiment_state(connection, row) -> dict:
     }
 
 
-def get_or_create_experiment(trainer_width: int, trainer_height: int, settings: dict | None = None, scenario: dict | None = None) -> dict:
+def get_or_create_experiment(trainer_width: int, trainer_height: int, settings: dict | None = None, scenario: dict | None = None, *, _connection=None) -> dict:
     """Resume the active experiment, or create one after an explicit new start."""
     # Direct callers must follow the same viewport contract as the HTTP endpoint.
     if any(type(value) is not int or value <= 50 for value in (trainer_width, trainer_height)):
@@ -188,9 +192,12 @@ def get_or_create_experiment(trainer_width: int, trainer_height: int, settings: 
     from backend.settings import ExperimentSettings
     # Validate direct callers before opening storage; only new experiments consume preferences.
     requested = ExperimentSettings(**settings).model_dump() if settings is not None else None
-    with closing(_connect()) as connection, connection:
+    # Plan acceptance supplies its transaction so Experiment creation and association commit together.
+    scope = closing(_connect()) if _connection is None else nullcontext(_connection)
+    with scope as connection, (connection if _connection is None else nullcontext()):
         # Serialize creation across tabs so there can be only one active experiment.
-        connection.execute("BEGIN IMMEDIATE")
+        if _connection is None:
+            connection.execute("BEGIN IMMEDIATE")
         row = connection.execute(
             "SELECT * FROM experiments WHERE active_slot=1"
         ).fetchone()

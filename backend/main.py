@@ -124,7 +124,7 @@ def health():
 
 @app.exception_handler(RequestValidationError)
 async def upload_validation_error(request, exc):
-    if request.url.path not in ("/sessions", "/sessions/incomplete", "/experiments", "/agent/plan", "/scenarios/sessions", "/scenarios/experiments"):
+    if request.url.path not in ("/sessions", "/sessions/incomplete", "/experiments", "/agent/plan", "/scenarios/sessions", "/scenarios/experiments", "/agent/training-plans") and not request.url.path.startswith("/training-plans/"):
         return await request_validation_exception_handler(request, exc)
     # Do not echo malformed input (including NaN/Infinity) into JSON responses.
     return JSONResponse(status_code=422, content={
@@ -611,6 +611,50 @@ def scenario_history(limit:int=Query(50,ge=1,le=500)):
     with closing(store._connect()) as connection:
         return [{"session_id":row["session_id"],"experiment_id":row["experiment_id"],"scenario_id":row["scenario_id"],"status":row["status"],"result":json.loads(row["result_json"])}
             for row in connection.execute("SELECT * FROM scenario_sessions ORDER BY saved_at DESC,rowid DESC LIMIT ?",(limit,))]
+
+from backend import training_plans
+
+
+def training_action(action, *args):
+    """Preserve safe runtime failures and reject invalid plans before execution."""
+    try:
+        return action(*args)
+    except ExperimentNotFound as exc:
+        raise HTTPException(404, str(exc)) from None
+    except ExperimentConflict as exc:
+        raise HTTPException(409, str(exc)) from None
+    except PlannerFailure as exc:
+        raise HTTPException(exc.http_status, exc.detail) from None
+    except ModelUnavailable:
+        raise HTTPException(503, "Model is unavailable; no recommendation was generated.") from None
+    except (ValueError, TypeError, KeyError, OverflowError):
+        raise HTTPException(422, "Invalid training plan or evidence.") from None
+
+
+@app.post("/agent/training-plans")
+def propose_training_plan(request: training_plans.TrainingRequest):
+    return training_action(training_plans.create_plan, request)
+
+
+@app.get("/training-plans/{plan_id}")
+def read_training_plan(plan_id: str):
+    return training_action(training_plans.get_plan, plan_id)
+
+
+@app.post("/training-plans/{plan_id}/accept")
+def accept_training_plan(plan_id: str, request: training_plans.AcceptRequest):
+    return training_action(training_plans.accept_plan, plan_id, request)
+
+
+@app.post("/training-plans/{plan_id}/reject")
+def reject_training_plan(plan_id: str):
+    return training_action(training_plans.reject_plan, plan_id)
+
+
+@app.post("/training-plans/{plan_id}/evaluate")
+def evaluate_training_plan(plan_id: str):
+    return training_action(training_plans.evaluate_plan, plan_id)
+
 
 app.mount(
     "/",

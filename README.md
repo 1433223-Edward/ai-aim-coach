@@ -597,3 +597,11 @@ Test 页 Scenario Library 提供四目标切换、六目标精准、水平/垂�
 综合分由 Python 根据原始点击或最多 20Hz 跟随样本重算，浏览器提交的成绩不被采用；这些数据仍属于客户端报告，不是防作弊证据。历史对比仅使用完全同配置、同 viewport、同评分版本的完成成绩。首次使用新后端将新增 `scenario_sessions` 表，不修改旧训练记录。
 
 重启后端并通过 HTTP 刷新页面。完整定义、公式、实际测试结果和验收步骤见 [Phase 2 report](docs/phase2/PHASE2_REPORT.md)。离线回归：`python -B scripts/run_checks.py`；六场景真实 HTTP + 临时 SQLite + 重启检查：`node --experimental-vm-modules scripts/check_phase2_persistence.cjs`（可设置 `AIMCOACH_TEST_PYTHON`）。
+
+## Phase 3 Personalized Training
+
+Test 页 Personalized Training Plan 通过原 Tool Calling Runtime 查询有界历史、按同条件分析趋势并生成受约束计划。先设置目标、时长/数量/难度边界及可选日期范围，点击请求后审阅计划；接受只创建并关联 Experiment，仍需手动点击场景库开始训练。可以拒绝或重新推荐，旧建议和证据保留。运行使用原有模型配置；无可用模型时返回明确错误，不自动伪造模型回复。请求模型可能消耗配置账号的额度，请按需操作。
+
+所有趋势、参数选择和训练效果评估由 Python 确定性计算；模型输出必须原样引用已验证工具计划。新建 `training_plans` 元数据表，旧评分定义与历史训练记录不变。效果评估至少需要3条推荐前、2条执行后的同条件有效数据；变化不构成因果证明。历史请求先按日期/场景限定范围，再最多读取100条，工具单次最多返回50条，旧 Flick 指标可查询但不与场景成绩混合比较。
+
+运行 `python -B scripts/run_checks.py` 进行离线回归；`python -B scripts/check_phase3_training.py` 使用明确标识的 Fake Client、合成数据、临时 SQLite 和真实本地 HTTP 验证计划/执行/评估/重启流程，不调用真实模型。详见 [Phase 3 report](docs/phase3/PHASE3_REPORT.md) 与 [合成测试完整示例](docs/phase3/demo-example.json)。
