@@ -8,7 +8,7 @@ export function bindTrainingUI(core, document) {
             : "等待服务端冻结配置";
         document.getElementById("pauseTraining").disabled=!state.sessionActive;
         document.getElementById("endTraining").disabled=!state.sessionActive;
-        document.getElementById("openSettings").disabled=!!(state.locked||state.sessionActive||state.pointerLockPending||state.countdown);
+        document.getElementById("openSettings").disabled=!!(state.scenarioRunning||state.locked||state.sessionActive||state.pointerLockPending||state.countdown);
         document.getElementById("experimentIdentity").textContent = experiment?.experiment_id || "等待服务端实验";
         document.getElementById("sessionProgress").textContent = experiment
             ? `${experiment.completed_count} / ${experiment.schedule.length}` : "— / —";
@@ -16,14 +16,14 @@ export function bindTrainingUI(core, document) {
         document.getElementById("conditionDetail").textContent = condition
             ? `Repeat ${condition.repeat} · ${experiment.protocol.target_count} targets`
             : experiment?.status === "complete" ? "实验已完成 · 显式开始下一轮" : "等待实验条件";
-        const locked = state.sessionActive || state.locked || state.pointerLockPending;
+        const locked = state.scenarioRunning || state.sessionActive || state.locked || state.pointerLockPending;
         const status = state.paused ? "PAUSED" : state.countdown ? "COUNTDOWN" : locked ? "TRAINING" : state.sessionSaving ? "SAVING" : state.experimentLoading
             ? "SYNCING" : state.pending ? "PENDING" : state.error ? "ATTENTION"
                 : experiment?.ended ? "ENDED" : experiment?.status === "complete" ? "COMPLETE" : "READY";
         const badge = document.getElementById("trainingStatus");
         badge.textContent = status;
         badge.dataset.state = status.toLowerCase();
-        document.getElementById("openInsights").disabled = locked;
+        document.getElementById("openInsights").disabled = locked || !!experiment?.protocol.scenario;
         document.getElementById("insightsHint").textContent = locked
             ? "训练中请先按 Esc 退出，再查看 Insights。" : "查看已保存数据与 AI 建议";
     });

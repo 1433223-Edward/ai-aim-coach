@@ -1,0 +1,44 @@
+[
+  {
+    "scenario_id": "reactive_tracking",
+    "status": "complete",
+    "score": 12.86,
+    "session_id": "5701399b-6d55-4d2e-844e-d652780c7974"
+  },
+  {
+    "scenario_id": "vertical_tracking",
+    "status": "complete",
+    "score": 5.83,
+    "session_id": "299417ae-488d-49f4-bf1d-a2e3f547b355"
+  },
+  {
+    "scenario_id": "flick_target",
+    "status": "complete",
+    "score": 68.28,
+    "session_id": "a9afd284-2e80-4c5c-8cb4-b32d67c7f507"
+  },
+  {
+    "scenario_id": "six_target_precision",
+    "status": "complete",
+    "score": 65.41,
+    "session_id": "cc6d9e1a-fe5e-4e18-9f9c-2ec433d13e3c"
+  },
+  {
+    "scenario_id": "horizontal_tracking",
+    "status": "complete",
+    "score": 2.28,
+    "session_id": "c0941649-bdfa-43e5-940b-ebf3c2a7f09a"
+  },
+  {
+    "scenario_id": "four_target_switching",
+    "status": "complete",
+    "score": 68.59,
+    "session_id": "9772a046-fc91-45d1-910c-ec0a92b3002d"
+  },
+  {
+    "scenario_id": "four_target_switching",
+    "status": "incomplete",
+    "score": 0.0,
+    "session_id": "2f97759a-e754-49a3-a2d0-4657760c9d6d"
+  }
+]

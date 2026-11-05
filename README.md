@@ -588,3 +588,12 @@ ENGINEERING_EVIDENCE.md
 Test 页面齿轮设置用于下一次新实验；当前实验配置冻结不变。P 暂停/继续（当前未完成 Attempt 重做），E 提前结束 Session；未完成记录单独归档。结束实验保留历史，随后可创建新配置实验。首次重启会新增两张归档/结束元数据表，不清空原表。
 
 完整默认值、API、备份回滚和人工验收见 [Phase 1 report](docs/phase1/PHASE1_REPORT.md)。请重启后端后通过 HTTP 刷新页面。真实持久化检查：`node --experimental-vm-modules scripts/check_phase1_persistence.cjs`，默认使用本机 aimcoach Python；其他环境可设置 `AIMCOACH_TEST_PYTHON` 为当前 Python 可执行路径。该检查模拟 DOM 输入，实际运行前端 ESM、HTTP 和临时 SQLite，不是物理鼠标 E2E。
+
+
+## Phase 2 Scenario Library & Scoring
+
+Test 页 Scenario Library 提供四目标切换、六目标精准、水平/垂直跟随、随机 Flick、动态反应跟随。未结束的旧实验必须先显式结束（历史保留），再点“开始场景”。新场景使用普通页面指针，P 暂停/继续、E 或 Escape 提前结束；原 Flick 仍使用原 Pointer Lock 流程。每个新场景实验包含一个 Session，配置和 `aim-score-1` 评分权重冻结到协议及 Session。
+
+综合分由 Python 根据原始点击或最多 20Hz 跟随样本重算，浏览器提交的成绩不被采用；这些数据仍属于客户端报告，不是防作弊证据。历史对比仅使用完全同配置、同 viewport、同评分版本的完成成绩。首次使用新后端将新增 `scenario_sessions` 表，不修改旧训练记录。
+
+重启后端并通过 HTTP 刷新页面。完整定义、公式、实际测试结果和验收步骤见 [Phase 2 report](docs/phase2/PHASE2_REPORT.md)。离线回归：`python -B scripts/run_checks.py`；六场景真实 HTTP + 临时 SQLite + 重启检查：`node --experimental-vm-modules scripts/check_phase2_persistence.cjs`（可设置 `AIMCOACH_TEST_PYTHON`）。

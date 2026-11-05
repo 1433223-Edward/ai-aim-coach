@@ -1,0 +1,26 @@
+(node:39628) ExperimentalWarning: VM Modules is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+{
+  "result": "PASS",
+  "frontend": "shipped ESM with simulated DOM/input",
+  "transport": "real HTTP",
+  "database": "temporary SQLite",
+  "counts": [
+    1,
+    1
+  ],
+  "checks": [
+    "shot-to-commit",
+    "ACK-only progress",
+    "unique attempts",
+    "duplicate 200",
+    "conflict 409",
+    "pause/resume",
+    "incomplete isolation",
+    "query statistics",
+    "filter validation",
+    "end experiment",
+    "empty new experiment",
+    "process restart restore"
+  ]
+}

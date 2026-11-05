@@ -106,6 +106,10 @@ def init_database() -> None:
 
         connection.execute("""CREATE TABLE IF NOT EXISTS experiment_endings (
             experiment_id TEXT PRIMARY KEY, ended_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP)""")
+        connection.execute("""CREATE TABLE IF NOT EXISTS scenario_sessions (
+            session_id TEXT PRIMARY KEY, experiment_id TEXT NOT NULL, experiment_order INTEGER NOT NULL,
+            scenario_id TEXT NOT NULL, status TEXT NOT NULL, raw_data TEXT NOT NULL, result_json TEXT NOT NULL,
+            saved_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP)""")
         # Additive archive: interrupted reports never enter complete-session metrics or progress.
         connection.execute("""CREATE TABLE IF NOT EXISTS incomplete_sessions (
             session_id TEXT PRIMARY KEY, experiment_id TEXT NOT NULL, started_at TEXT NOT NULL,
@@ -155,8 +159,9 @@ def _experiment_state(connection, row) -> dict:
         raise ExperimentConflict("Stored experiment protocol or schedule is invalid.") from None
     # Progress comes only from committed sessions, never from browser counters.
     saved_rows = connection.execute(
-        "SELECT session_id, experiment_order FROM sessions WHERE experiment_id=? "
-        "ORDER BY experiment_order", (row["experiment_id"],),
+        "SELECT session_id, experiment_order FROM sessions WHERE experiment_id=? UNION ALL "
+        "SELECT session_id,experiment_order FROM scenario_sessions WHERE experiment_id=? AND status='complete' ORDER BY experiment_order",
+        (row["experiment_id"],row["experiment_id"]),
     ).fetchall()
     completed = len(saved_rows)
     # Do not disguise manually corrupted or noncontiguous progress as a valid resume.
@@ -175,7 +180,7 @@ def _experiment_state(connection, row) -> dict:
     }
 
 
-def get_or_create_experiment(trainer_width: int, trainer_height: int, settings: dict | None = None) -> dict:
+def get_or_create_experiment(trainer_width: int, trainer_height: int, settings: dict | None = None, scenario: dict | None = None) -> dict:
     """Resume the active experiment, or create one after an explicit new start."""
     # Direct callers must follow the same viewport contract as the HTTP endpoint.
     if any(type(value) is not int or value <= 50 for value in (trainer_width, trainer_height)):
@@ -213,6 +218,9 @@ def get_or_create_experiment(trainer_width: int, trainer_height: int, settings: 
                 protocol["sessions_per_sensitivity"] = requested["sessions"]
                 schedule = [{"sensitivity": requested["sensitivity"], "repeat": repeat}
                             for repeat in range(1, requested["sessions"] + 1)]
+            if scenario is not None:
+                from analysis.scenarios import snapshot
+                protocol["scenario"] = snapshot(scenario)
             random.SystemRandom().shuffle(schedule)
             experiment_id = str(uuid4())
             connection.execute(
@@ -249,6 +257,8 @@ def require_matching_experiment(session: dict, state: dict) -> None:
     if condition is None or session.get("experimentOrder") != state["completed_count"] + 1:
         raise ExperimentConflict("Experiment condition has already changed. Reload progress.")
     protocol = state["protocol"]
+    if protocol.get("scenario"):
+        raise ExperimentConflict("Scenario evidence must use the scenario Session endpoint.")
     if protocol.get("settings") is not None:
         from backend.settings import ExperimentSettings
         snapshot = session.get("settingsSnapshot")
@@ -338,7 +348,7 @@ def save_session(
     with closing(_connect()) as connection, connection:
         # Validate and insert under one write lock; two tabs cannot commit the same slot.
         connection.execute("BEGIN IMMEDIATE")
-        if connection.execute("SELECT 1 FROM incomplete_sessions WHERE session_id=?", (session["sessionId"],)).fetchone():
+        if connection.execute("SELECT 1 FROM incomplete_sessions WHERE session_id=? UNION ALL SELECT 1 FROM scenario_sessions WHERE session_id=?", (session["sessionId"],session["sessionId"])).fetchone():
             raise ExperimentConflict("Session ID belongs to an interrupted report.")
         existing = connection.execute(
             "SELECT raw_data FROM sessions WHERE session_id=?", (session["sessionId"],)
@@ -496,7 +506,7 @@ def save_incomplete_session(session: dict) -> None:
         if existing:
             if existing["raw_data"] == encoded:return
             raise ExperimentConflict("Interrupted Session ID has a different payload.")
-        if connection.execute("SELECT 1 FROM sessions WHERE session_id=?",(session["sessionId"],)).fetchone():
+        if connection.execute("SELECT 1 FROM sessions WHERE session_id=? UNION ALL SELECT 1 FROM scenario_sessions WHERE session_id=?",(session["sessionId"],session["sessionId"])).fetchone():
             raise ExperimentConflict("Session ID belongs to a completed report.")
         row=connection.execute("SELECT * FROM experiments WHERE experiment_id=?",(session["experimentId"],)).fetchone()
         if row is None:raise ExperimentConflict("Unknown experiment.")
@@ -510,31 +520,38 @@ def save_incomplete_session(session: dict) -> None:
 
 
 def history_sessions(experiment_id=None, date=None, scene=None, limit=100, offset=0):
-    if scene not in (None,"flick_2d"):return []
     with closing(_connect()) as connection:
         rows=connection.execute("""SELECT * FROM (
-            SELECT session_id,experiment_id,started_at,target_count,'complete' AS status,saved_at FROM sessions
+            SELECT session_id,experiment_id,started_at,target_count,'complete' AS status,saved_at,'flick_2d' AS scene FROM sessions
             UNION ALL
-            SELECT session_id,experiment_id,started_at,NULL AS target_count,'incomplete' AS status,saved_at FROM incomplete_sessions)
-            WHERE (? IS NULL OR experiment_id=?) AND (? IS NULL OR substr(started_at,1,10)=?)
-            ORDER BY started_at DESC,session_id LIMIT ? OFFSET ?""",(experiment_id,experiment_id,date,date,limit,offset)).fetchall()
-        return [{**dict(row),"scene":"flick_2d"} for row in rows]
+            SELECT session_id,experiment_id,started_at,NULL AS target_count,'incomplete' AS status,saved_at,'flick_2d' AS scene FROM incomplete_sessions
+            UNION ALL
+            SELECT session_id,experiment_id,json_extract(raw_data,'$.startedAt') AS started_at,json_extract(raw_data,'$.targetCount') AS target_count,status,saved_at,scenario_id AS scene FROM scenario_sessions)
+            WHERE (? IS NULL OR experiment_id=?) AND (? IS NULL OR substr(started_at,1,10)=?) AND (? IS NULL OR scene=?)
+            ORDER BY started_at DESC,session_id LIMIT ? OFFSET ?""",(experiment_id,experiment_id,date,date,scene,scene,limit,offset)).fetchall()
+        return [dict(row) for row in rows]
 
 
 def history_experiments(date=None, scene=None, limit=100, offset=0):
-    if scene not in (None,"flick_2d"):return []
+    # Include both evidence families without passing tracking data to legacy analysis.
     with closing(_connect()) as connection:
         rows=connection.execute("""SELECT ids.experiment_id,e.created_at,e.protocol,
             EXISTS(SELECT 1 FROM experiment_endings x WHERE x.experiment_id=ids.experiment_id) AS ended,
-            (SELECT count(*) FROM sessions s WHERE s.experiment_id=ids.experiment_id) AS saved_sessions,
-            (SELECT count(*) FROM incomplete_sessions i WHERE i.experiment_id=ids.experiment_id) AS interrupted_sessions
-            FROM (SELECT experiment_id FROM experiments UNION SELECT experiment_id FROM sessions UNION SELECT experiment_id FROM incomplete_sessions) ids
+            (SELECT count(*) FROM sessions s WHERE s.experiment_id=ids.experiment_id) +
+            (SELECT count(*) FROM scenario_sessions s WHERE s.experiment_id=ids.experiment_id AND s.status='complete') AS saved_sessions,
+            (SELECT count(*) FROM incomplete_sessions i WHERE i.experiment_id=ids.experiment_id) +
+            (SELECT count(*) FROM scenario_sessions s WHERE s.experiment_id=ids.experiment_id AND s.status='incomplete') AS interrupted_sessions
+            FROM (SELECT experiment_id FROM experiments UNION SELECT experiment_id FROM sessions UNION SELECT experiment_id FROM incomplete_sessions UNION SELECT experiment_id FROM scenario_sessions) ids
             LEFT JOIN experiments e ON e.experiment_id=ids.experiment_id
             WHERE (? IS NULL OR substr(e.created_at,1,10)=? OR EXISTS
                 (SELECT 1 FROM sessions s WHERE s.experiment_id=ids.experiment_id AND substr(s.started_at,1,10)=?) OR EXISTS
-                (SELECT 1 FROM incomplete_sessions i WHERE i.experiment_id=ids.experiment_id AND substr(i.started_at,1,10)=?))
-            ORDER BY e.created_at DESC,ids.experiment_id LIMIT ? OFFSET ?""",(date,date,date,date,limit,offset)).fetchall()
-        return [{**{k:v for k,v in dict(row).items() if k!="protocol"},"managed":row["protocol"] is not None,"scene":"flick_2d"} for row in rows]
+                (SELECT 1 FROM incomplete_sessions i WHERE i.experiment_id=ids.experiment_id AND substr(i.started_at,1,10)=?) OR EXISTS
+                (SELECT 1 FROM scenario_sessions s WHERE s.experiment_id=ids.experiment_id AND substr(json_extract(s.raw_data,'$.startedAt'),1,10)=?))
+            AND (? IS NULL OR coalesce(json_extract(e.protocol,'$.scenario.scenario_id'),'flick_2d')=?)
+            ORDER BY e.created_at DESC,ids.experiment_id LIMIT ? OFFSET ?""",(date,date,date,date,date,scene,scene,limit,offset)).fetchall()
+        return [{**{k:v for k,v in dict(row).items() if k!="protocol"},"managed":row["protocol"] is not None,
+                 "scene":json.loads(row["protocol"]).get("scenario",{}).get("scenario_id","flick_2d") if row["protocol"] else "flick_2d"} for row in rows]
+
 
 
 def history_session_detail(session_id):
@@ -556,7 +573,11 @@ def history_session_detail(session_id):
         return {"session":session,"status":"complete","derived_fields":derived,"attempt_metrics":[calculate_attempt_metrics(a) for a in analysis_session["attempts"]],"statistics":calculate_session_summary(analysis_session)}
     with closing(_connect()) as connection:
         row=connection.execute("SELECT raw_data,experiment_id FROM incomplete_sessions WHERE session_id=?",(session_id,)).fetchone()
-        if row is None:raise ExperimentNotFound("Session not found.")
+        if row is None:
+            scored=connection.execute("SELECT raw_data,result_json,status FROM scenario_sessions WHERE session_id=?",(session_id,)).fetchone()
+            if scored is None:raise ExperimentNotFound("Session not found.")
+            result=json.loads(scored["result_json"])
+            return {"session":json.loads(scored["raw_data"]),"status":scored["status"],"statistics":result["metrics"],"score":result,"scoring_version":result["scoring_version"]}
         archived=json.loads(row["raw_data"])
         from analysis.session_validator import validate_session_integrity
         if not isinstance(archived,dict) or archived.get("sessionId")!=session_id or archived.get("experimentId")!=row["experiment_id"]:

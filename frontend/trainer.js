@@ -47,6 +47,16 @@ let planRequestVersion = 0;
 let recommendationEvidence = null;
 let pointerLockPending = false;
 let planFailureCode = null;
+let scenarioMode = false;
+let scenarioRunning = false;
+let scenarioPending = false;
+export function setScenarioMode(mode,running=false,pending=false){scenarioMode=mode;scenarioRunning=running;scenarioPending=pending;updateExperimentMessage();}
+export function refreshTrainingState(){return refreshExperiment();}
+export function selectScenarioExperiment(state){
+    // A successful scenario creation explicitly changes this tab's selected identity.
+    if(sessionActive || hasUnconfirmedData() || !state?.protocol.scenario)throw new Error("Cannot switch experiment while data is pending.");
+    applyExperimentState(state);updateExperimentMessage();
+}
 let paused = false;
 let countdown = false;
 let activeStarted = 0;
@@ -88,7 +98,7 @@ const stateListeners = new Set();
 
 // The shell receives copies and cannot mutate the controller's protocol or progress.
 export function getTrainingState() {
-    return {paused, countdown, sessionActive, sessionSaving, planBusy, experimentLoading, pointerLockPending,
+    return {scenarioRunning, paused, countdown, sessionActive, sessionSaving, planBusy, experimentLoading, pointerLockPending,
         locked: document.pointerLockElement === trainerArea,
         experiment: activeExperiment ? JSON.parse(JSON.stringify(activeExperiment)) : null,
         recommendationEvidence: recommendationEvidence ? JSON.parse(JSON.stringify(recommendationEvidence)) : null,
@@ -111,7 +121,7 @@ function publishState() {
 
 export function canLeaveTrainingPage() {
     // Require the existing Escape/abort path, including the asynchronous lock request gap.
-    return !sessionActive && !pointerLockPending && document.pointerLockElement !== trainerArea;
+    return !scenarioRunning && !sessionActive && !pointerLockPending && document.pointerLockElement !== trainerArea;
 }
 
 function invalidateRecommendation() {
@@ -174,7 +184,7 @@ const pendingQueue = new PendingSessionQueue(queueStorage);
 
 function hasUnconfirmedData() {
     const pending = pendingQueue.list();
-    return pending.sessions.length > 0 || pending.errors.length > 0;
+    return scenarioPending || pending.sessions.length > 0 || pending.errors.length > 0;
 }
 
 // Keep controller-specific deadlines at the caller; transport owns no training state.
@@ -751,6 +761,9 @@ async function completeSession() {
 // ------------------------------------------------------------
 
 trainerArea.addEventListener("click", async () => {
+    if(scenarioMode)return;
+    // An unfinished scenario must be ended explicitly before the legacy mode can create a new experiment.
+    if(activeExperiment?.protocol.scenario && !experimentFinished){setSaveStatus("请先结束当前场景实验，再进入原训练。");return;}
     // Ignore programmatic clicks when Home is visible; hidden geometry cannot define a protocol.
     if (trainerArea.closest?.("[hidden]")) return;
     // Avoid collecting against unfinished saves or a recommendation in progress.
@@ -918,6 +931,7 @@ document.addEventListener("pointerlockchange", async () => {
 document.addEventListener(
     "mousedown",
     (event) => {
+        if(scenarioMode)return;
 
         // Only the primary button records shots; other buttons must not change evidence.
         if (event.button !== 0) return;
@@ -1002,6 +1016,7 @@ document.addEventListener(
 );
 
 document.addEventListener("mousemove", (event) => {
+    if(scenarioMode)return;
 
     // 没进入 Pointer Lock 时，不让鼠标控制虚拟准星。
     if (document.pointerLockElement !== trainerArea) {

@@ -124,7 +124,7 @@ def health():
 
 @app.exception_handler(RequestValidationError)
 async def upload_validation_error(request, exc):
-    if request.url.path not in ("/sessions", "/sessions/incomplete", "/experiments", "/agent/plan"):
+    if request.url.path not in ("/sessions", "/sessions/incomplete", "/experiments", "/agent/plan", "/scenarios/sessions", "/scenarios/experiments"):
         return await request_validation_exception_handler(request, exc)
     # Do not echo malformed input (including NaN/Infinity) into JSON responses.
     return JSONResponse(status_code=422, content={
@@ -568,6 +568,49 @@ def experiment_history_detail(experiment_id: str):
     if state is None and not rows:raise HTTPException(404,"Experiment not found.")
     return {"experiment":state,"managed":state is not None,"sessions":rows,"protocol_verified":state is not None}
 
+
+from analysis.scenarios import ScenarioConfig, registry as scenario_registry
+from backend.scenario_store import save as save_scenario
+
+class ScenarioStart(BaseModel):
+    model_config=ConfigDict(strict=True,extra="forbid")
+    trainer_width:int=Field(ge=100,le=10000)
+    trainer_height:int=Field(ge=100,le=10000)
+    scenario:ScenarioConfig
+
+@app.get("/scenarios")
+def list_scenarios():return scenario_registry()
+
+@app.post("/scenarios/experiments")
+def start_scenario(request:ScenarioStart):
+    config=request.scenario.model_dump()
+    from analysis.scenarios import snapshot,target_at
+    try:target_at(snapshot(config),request.trainer_width,request.trainer_height,0)
+    except ValueError:raise HTTPException(422,"Viewport too small for the selected difficulty.") from None
+    state=get_or_create_experiment(request.trainer_width,request.trainer_height,
+        {"sessions":1,"attempts":config["target_count"] if snapshot(config)["category"]=="static" else 1,"sensitivity":1.0},config)
+    if state["protocol"].get("scenario")!=snapshot(config):raise HTTPException(409,"End the current experiment explicitly before changing scenarios.")
+    # A restored experiment keeps its viewport; do not collect evidence that cannot be saved.
+    if (state["protocol"]["trainer_width"],state["protocol"]["trainer_height"])!=(request.trainer_width,request.trainer_height):
+        raise HTTPException(409,"Restore the experiment viewport or explicitly end it before starting another.")
+    return state
+
+@app.post("/scenarios/sessions")
+def upload_scenario(request:SessionUpload):
+    session=request.model_dump(by_alias=True)
+    try:result=save_scenario(session)
+    except ExperimentNotFound:raise HTTPException(404,"Experiment not found.") from None
+    except ExperimentConflict as exc:raise HTTPException(409,str(exc)) from None
+    except (ValueError,TypeError,KeyError,OverflowError):raise HTTPException(422,"Invalid scenario evidence.") from None
+    return {"saved":True,"session_id":session["sessionId"],"result":result}
+
+@app.get("/scenarios/sessions")
+def scenario_history(limit:int=Query(50,ge=1,le=500)):
+    from contextlib import closing
+    from backend import session_store as store
+    with closing(store._connect()) as connection:
+        return [{"session_id":row["session_id"],"experiment_id":row["experiment_id"],"scenario_id":row["scenario_id"],"status":row["status"],"result":json.loads(row["result_json"])}
+            for row in connection.execute("SELECT * FROM scenario_sessions ORDER BY saved_at DESC,rowid DESC LIMIT ?",(limit,))]
 
 app.mount(
     "/",

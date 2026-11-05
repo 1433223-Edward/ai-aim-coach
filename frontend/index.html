@@ -6,7 +6,7 @@
     <meta name="theme-color" content="#0b1017">
     <title>AI Aim Coach — Precision training</title>
     <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='10' fill='none' stroke='%235be1e6' stroke-width='2'/%3E%3Cpath d='M16 0v10m0 12v10M0 16h10m12 0h10' stroke='%235be1e6' stroke-width='2'/%3E%3C/svg%3E">
-    <link rel="stylesheet" href="./style.css?v=phase1-settings-1">
+    <link rel="stylesheet" href="./style.css?v=phase2-scenarios-1">
 </head>
 <body>
     <a id="skipContent" class="skip-link" href="#pageContent">Skip to content</a>
@@ -66,7 +66,17 @@
                 <div><span class="field-label">SENSITIVITY</span><strong id="conditionValue">—</strong><small id="conditionDetail">等待实验条件</small></div>
                 <span id="trainingStatus" class="state-badge" data-state="syncing">SYNCING</span>
             </section>
-            <div class="workspace-heading content-width"><span><span class="status-dot"></span> FLICK WORKSPACE</span><span>LEFT CLICK TO SHOOT <span class="separator">/</span> ESC TO EXIT</span></div>
+            <section class="content-width scenario-library"><h2>Scenario Library</h2><p>选择场景后显式创建实验。当前实验未结束时，请先使用“结束当前实验”。</p>
+<label>场景 <select id="scenarioSelect"><option value="legacy">Original Flick · 原实验</option></select></label>
+<label>难度 <select id="scenarioDifficulty"><option>easy</option><option selected>normal</option><option>hard</option></select></label>
+<label>种子 <input id="scenarioSeed" type="number" min="0" max="2147483647" value="1"></label>
+<label>时长 / 秒 <input id="scenarioDuration" type="number" min="10" max="120" value="20"></label>
+<label>目标数 <input id="scenarioCount" type="number" min="5" max="100" value="20"></label>
+<label>跟随速度 px/s <input id="scenarioSpeed" type="number" min="40" max="400" value="120"></label>
+<label>初始方向 <select id="scenarioDirection"><option value="positive">positive</option><option value="negative">negative</option></select></label>
+<button id="scenarioStart" class="button secondary" type="button">开始场景</button><button id="scenarioPause" class="button quiet" type="button">暂停 / 继续场景</button><button id="scenarioEnd" class="button quiet" type="button">提前结束场景</button><button id="scenarioRetry" class="button quiet" type="button">重试保存场景</button>
+<button id="scenarioExport" class="button quiet" type="button">导出待保存场景</button><p id="scenarioStatus" role="status">成绩由服务端确定性评分，不是防作弊数据。</p><pre id="scenarioResult"></pre></section>
+<div class="workspace-heading content-width"><span><span class="status-dot"></span> FLICK WORKSPACE</span><span>LEFT CLICK TO SHOOT <span class="separator">/</span> ESC TO EXIT</span></div>
             <!-- No border, padding, transforms, scaling or responsive resizing on the coordinate surface. -->
             <section id="trainer-area" aria-label="2D aim training area. Click to start; Escape exits.">
                 <div id="target"></div><div id="crosshair"></div>
@@ -115,6 +125,6 @@
     <label>Pointer multiplier <input name="sensitivity" type="number" min="0.1" max="5" step="0.1" required></label>
     </fieldset><button type="submit">保存偏好</button><button id="closeSettings" type="button">关闭</button><p id="settingsStatus" role="status"></p>
     </form></dialog>
-    <script type="module" src="./app.js?v=phase1-settings-1"></script>
+    <script type="module" src="./app.js?v=phase2-scenarios-1"></script>
 </body>
 </html>

@@ -205,3 +205,5 @@ nav a[aria-current] { border-color: var(--accent); }
 #crosshair[data-shape="Cross"]::before {width:100%;height:var(--crosshair-thickness,2px);}
 #crosshair[data-shape="Cross"]::after {height:100%;width:var(--crosshair-thickness,2px);}
 .lifecycle-controls {padding-block:16px;}.lifecycle-controls p{font-size:12px;color:var(--muted);margin-top:10px;}
+
+.scenario-library{padding-block:24px;}.scenario-library label{display:inline-flex;flex-direction:column;margin:8px;font-size:12px;}.scenario-library input,.scenario-library select{max-width:220px;background:var(--surface);color:var(--text);padding:7px;border:1px solid var(--border);}.scenario-library pre{white-space:pre-wrap;overflow-wrap:anywhere;font-size:12px;} .scenario-ghost{position:absolute;border:1px solid #718491;border-radius:50%;pointer-events:none;opacity:.45;transform:translate(-50%,-50%);}
