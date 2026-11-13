@@ -1,0 +1,155 @@
+{
+  "source": "SYNTHETIC TEST DATA / FAKE CLIENT; NOT A REAL MODEL RECOMMENDATION",
+  "transport": "real HTTP",
+  "database": "disposable SQLite",
+  "result": "PASS",
+  "checks": [
+    "three tools / four model rounds",
+    "explicit accept",
+    "no automatic training",
+    "Session upload / idempotency",
+    "same-condition evaluation",
+    "restart evidence retention"
+  ],
+  "example_plan": {
+    "plan_id": "b6d7e3e2-650d-4c5d-8681-a406e37648b5",
+    "created_at": "2026-11-05T03:22:07.682636+00:00",
+    "scenario_id": "flick_target",
+    "sessions": 3,
+    "task_parameters": {
+      "difficulty": "normal",
+      "direction": "positive",
+      "duration_seconds": 10,
+      "scenario_id": "flick_target",
+      "seed": 1,
+      "speed": 120,
+      "target_count": 5
+    },
+    "training_goal": "提高稳定性",
+    "target": {
+      "direction": "increase",
+      "metric": "overall_score",
+      "minimum_delta": 0
+    },
+    "evidence_session_ids": [
+      "5a56ab19-0a21-4ecc-9996-f3d7b54e4e03",
+      "87d532e3-7049-4242-b974-1b54f04c76a9",
+      "6ca77d71-7e8b-445b-a178-b82a7634fcd9"
+    ],
+    "plan_status": "accepted",
+    "plan_version": "training-plan-1",
+    "experiment_id": "992d5dae-1442-476c-b25b-8931daa375fe",
+    "agent": {
+      "request_id": "28d32c11-6932-4e0b-8b25-016955946c91",
+      "tools_used": [
+        "get_training_history",
+        "analyze_performance_trend",
+        "recommend_training_plan"
+      ],
+      "trace": [
+        {
+          "arguments": {},
+          "elapsed_ms": 0.0,
+          "error": null,
+          "kind": "tool",
+          "snapshot_id": "fe8b82458b1e2105c23fe14d4a1ac0f4319e67d70e1a04ff450c26fbaf8b7556",
+          "success": true,
+          "tool": "get_training_history"
+        },
+        {
+          "arguments": {},
+          "elapsed_ms": 0.0,
+          "error": null,
+          "kind": "tool",
+          "snapshot_id": "fe8b82458b1e2105c23fe14d4a1ac0f4319e67d70e1a04ff450c26fbaf8b7556",
+          "success": true,
+          "tool": "analyze_performance_trend"
+        },
+        {
+          "arguments": {},
+          "elapsed_ms": 0.0,
+          "error": null,
+          "kind": "tool",
+          "snapshot_id": "fe8b82458b1e2105c23fe14d4a1ac0f4319e67d70e1a04ff450c26fbaf8b7556",
+          "success": true,
+          "tool": "recommend_training_plan"
+        }
+      ],
+      "usage": {
+        "client_kind": "fake_client",
+        "model": "qwen3.8-flash",
+        "model_calls": 4,
+        "model_runs": [
+          {
+            "accounting": "conservative_bytes",
+            "elapsed_ms": 0.0,
+            "reported_tokens": null,
+            "round": 1
+          },
+          {
+            "accounting": "conservative_bytes",
+            "elapsed_ms": 0.0,
+            "reported_tokens": null,
+            "round": 2
+          },
+          {
+            "accounting": "conservative_bytes",
+            "elapsed_ms": 0.0,
+            "reported_tokens": null,
+            "round": 3
+          },
+          {
+            "accounting": "conservative_bytes",
+            "elapsed_ms": 0.0,
+            "reported_tokens": null,
+            "round": 4
+          }
+        ],
+        "prompt_version": "ac305d477376763c0f7f800ae4b026e493f5bd4a6b436ac7b373c17eddaf0a3d",
+        "tokens_accounted": 32185,
+        "tools_version": "762b259e777be5f1022e140bf464ba55d0389b5f041390010adf4280f0433d3e"
+      }
+    }
+  },
+  "baseline_scores": [
+    77.5,
+    77.5,
+    77.5
+  ],
+  "execution_scores": [
+    100,
+    100,
+    100
+  ],
+  "evaluation": {
+    "plan_id": "b6d7e3e2-650d-4c5d-8681-a406e37648b5",
+    "experiment_id": "992d5dae-1442-476c-b25b-8931daa375fe",
+    "evaluated_at": "2026-11-05T03:22:07.857718+00:00",
+    "completion_rate": 1.0,
+    "experiment_ended": false,
+    "baseline_session_ids": [
+      "6ca77d71-7e8b-445b-a178-b82a7634fcd9",
+      "87d532e3-7049-4242-b974-1b54f04c76a9",
+      "5a56ab19-0a21-4ecc-9996-f3d7b54e4e03"
+    ],
+    "execution_session_ids": [
+      "7a88675d-c0fb-417e-b905-3a464af4177f",
+      "b5e36a10-486f-451b-a2e9-c761d35e3803",
+      "f49f687b-3dac-4c1b-9148-9ffb5b464e28"
+    ],
+    "comparison_session_ids": [
+      "7a88675d-c0fb-417e-b905-3a464af4177f",
+      "b5e36a10-486f-451b-a2e9-c761d35e3803",
+      "f49f687b-3dac-4c1b-9148-9ffb5b464e28"
+    ],
+    "sufficient": true,
+    "target_metric": "overall_score",
+    "metric_delta": 22.5,
+    "target_reached": true,
+    "weak_component_before": "accuracy",
+    "weak_component_after": null,
+    "recommendation_basis": "relative_weakness_changed",
+    "follow_up": "continue",
+    "limitation": "Descriptive before/after comparison; no causal attribution to the AI recommendation."
+  }
+}

@@ -7,13 +7,14 @@
     <title>AI Aim Coach — Precision training</title>
     <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='10' fill='none' stroke='%235be1e6' stroke-width='2'/%3E%3Cpath d='M16 0v10m0 12v10M0 16h10m12 0h10' stroke='%235be1e6' stroke-width='2'/%3E%3C/svg%3E">
     <link rel="stylesheet" href="./style.css?v=phase2-scenarios-1">
+    <link rel="stylesheet" href="./workspace.css?v=phase4-1">
 </head>
 <body>
     <a id="skipContent" class="skip-link" href="#pageContent">Skip to content</a>
     <header class="site-header">
         <div class="nav-inner">
             <a class="brand" href="#/home" aria-label="AI Aim Coach Home"><span class="brand-mark" aria-hidden="true"></span>AI AIM COACH<span class="brand-tag">LAB</span></a>
-            <nav aria-label="Main navigation"><a href="#/home" data-page="home">Home</a><a href="#/test" data-page="test">Test <span aria-hidden="true">↗</span></a></nav>
+            <nav aria-label="Main navigation"><a href="#/home" data-page="home">Home</a><a href="#/hub" data-page="hub">Training Hub</a><a href="#/arena" data-page="test">Aim Arena</a><a href="#/coach" data-page="coach">AI Coach</a><a href="#/history" data-page="history">History</a></nav>
             <span class="local-badge"><span class="status-dot"></span> LOCAL DEMO</span>
         </div>
     </header>
@@ -25,9 +26,9 @@
                     <p class="eyebrow"><span class="tiny-cross" aria-hidden="true">+</span> PRECISION IS A PROCESS</p>
                     <h1 id="heroTitle">Precision training.<br><span>Intelligent insights.</span></h1>
                     <p class="hero-description">Train your aim, understand your performance, and improve with AI-assisted recommendations.</p>
-                    <p class="hero-note">从一次 Flick，到一份有证据的训练建议。</p>
-                    <a class="button primary hero-cta" href="#/test">Start Training <span aria-hidden="true">↗</span></a>
-                    <div class="hero-footnote"><span>2D FLICK TRAINING</span><span class="separator">/</span><span>DETERMINISTIC ANALYSIS</span></div>
+                    <p class="hero-note">选择训练，专注练习，再用真实证据决定下一步。</p>
+                    <a class="button primary hero-cta" href="#/hub">Start Training <span aria-hidden="true">↗</span></a>
+                    <div class="hero-footnote"><span>2D SCENARIO LIBRARY</span><span class="separator">/</span><span>DETERMINISTIC ANALYSIS</span></div>
                 </div>
                 <div class="aim-visual" role="img" aria-label="Decorative aim rings and a target path. This illustration is not training data.">
                     <div class="visual-caption"><span>FOCUS / ACQUIRE / REFINE</span><span>01 — AIM LAB</span></div>
@@ -52,10 +53,34 @@
                     <article class="feature-card"><span class="feature-index">03 / REFINE</span><svg viewBox="0 0 48 48" aria-hidden="true"><path d="m24 4 5 14 15 6-15 5-5 15-5-15L4 24l15-6Z"/></svg><h3>AI Recommendations</h3><p>AI 通过工具读取分析证据，结合训练目标建议下一轮实验。结果与未知都有边界。</p><span class="feature-detail">TOOL CALLING · SCOPED EVIDENCE</span></article>
                 </div>
             </section>
-            <footer class="site-footer content-width"><span>AI AIM COACH</span><span>A local, single-user training &amp; analysis demo.</span><a href="#/test">Enter the lab ↗</a></footer>
+            <footer class="site-footer content-width"><span>AI AIM COACH</span><span>A local, single-user training &amp; analysis demo.</span><a href="#/hub">Training Hub ↗</a></footer>
         </div>
 
+        <div id="hubPage" class="management-page content-width" hidden>
+            <header class="page-heading"><div><p class="eyebrow">CHOOSE YOUR PRACTICE</p><h1>Training Hub</h1><p>选择训练任务，查看同条件成绩，再进入专注练习。</p></div><button id="hubSettings" class="button secondary" type="button">⚙ Settings</button></header>
+            <div id="hubExperiment"></div><p id="hubStatus" role="status"></p><div id="scenarioCards" class="scenario-cards"></div>
+            <section id="taskDetail" class="panel" hidden><h2 id="taskDetailTitle"></h2><p id="taskDetailDescription"></p><div id="taskDetailChart"></div></section>
+            <details class="panel" id="scenarioConfiguration"><summary>训练参数 · 自由训练</summary><div id="scenarioControlsSlot"></div><a class="button primary" href="#/arena">配置完成 · 进入 Aim Arena →</a></details>
+            <section class="panel"><h2>当前 AI 训练计划</h2><p id="hubPlan">暂无选中计划。可前往 AI Coach 请求建议。</p><a class="button secondary" href="#/coach">查看教练与计划 →</a><a id="hubPlanArena" class="button quiet" href="#/arena" hidden>进入已确认计划的 Arena</a></section>
+            <details class="panel"><summary>数据保存与恢复</summary><div id="recoverySlot"></div></details>
+        </div>
+        <div id="coachPage" class="management-page content-width" hidden>
+            <header class="page-heading"><div><p class="eyebrow">EVIDENCE BEFORE ADVICE</p><h1>AI Coach</h1><p>审阅历史依据、确认训练计划，再手动进入 Arena。</p></div><a class="button secondary" href="#/hub">← Training Hub</a></header>
+            <section class="panel"><h2>历史概览</h2><div id="coachOverview"></div></section><div id="coachPlanSlot"></div><div id="coachLegacySlot" class="panel"></div>
+            <section class="panel"><h2>计划执行与效果</h2><div id="planAnalytics"></div><a id="coachPlanArena" class="button primary" href="#/arena" hidden>进入 Aim Arena →</a></section>
+        </div>
+        <div id="historyPage" class="management-page content-width" hidden>
+            <header class="page-heading"><div><p class="eyebrow">YOUR TRAINING EVIDENCE</p><h1>History / Analytics</h1><p>按完整条件分组比较；不同参数与评分版本不混排。</p></div><button id="refreshHistory" class="button secondary" type="button">刷新历史</button></header>
+            <section class="panel filter-bar"><label>场景 <select id="historyScene"><option value="">全部场景</option></select></label><label>日期（UTC）<input id="historyDate" type="date"></label><label>Experiment ID <input id="historyExperiment" placeholder="可选"></label><button id="filterHistory" class="button secondary" type="button">查询记录</button></section>
+            <p id="historyStatus" role="status"></p><section class="panel"><h2>同条件评分与指标趋势</h2><label>对比条件 <select id="historyCondition"></select></label><div id="historyCharts" class="chart-grid"></div></section><section class="panel"><h2>任务能力维度 · 当前对比条件</h2><p>归一化指标直接来自服务器，仅描述所选条件，不作跨任务能力排名。</p><div id="abilityOverview"></div></section>
+            <section class="panel"><h2>Experiments</h2><div id="experimentList" class="record-list"></div></section><section class="panel"><h2>Sessions</h2><div id="sessionList" class="record-list"></div></section>
+            <section id="sessionDetailPanel" class="panel" hidden><h2>Session Detail</h2><div id="sessionDetail"></div></section>
+        </div>
         <div id="testPage" hidden>
+            <header id="arenaHud" class="arena-hud"><a class="button quiet arena-management" href="#/hub">← Hub</a><div><strong id="arenaTask">Aim Arena</strong><span id="arenaPhase" class="state-badge">READY</span></div><div id="arenaProgress" class="mono">准备训练</div><strong id="arenaTime" class="mono">—</strong><div id="arenaSettingsSlot"></div></header>
+            <footer id="arenaFooter" class="arena-footer"><button id="arenaStart" class="button primary" type="button">开始训练</button><div id="arenaRunButtons"></div><button id="arenaExit" class="button danger" type="button">退出训练</button><small id="arenaHint">P 暂停 · Esc 暂停 · E 退出</small></footer>
+            <section id="arenaOverlay" class="arena-overlay" hidden><div class="panel"><h2 id="arenaOverlayTitle">已暂停</h2><p id="arenaOverlayText"></p><button id="arenaResume" class="button primary" type="button">继续训练</button><button id="arenaPausedSettings" class="button secondary" type="button">⚙ Settings</button></div></section>
+            <section id="arenaSummary" class="arena-summary" hidden><div class="content-width"><p class="eyebrow">SESSION SUMMARY</p><h1 id="arenaSummaryTitle">训练完成</h1><p id="arenaSaveFeedback" role="status"></p><div id="arenaResultSlot"></div><div id="arenaRecoverySlot"></div><div class="summary-actions"><button id="arenaAgain" class="button primary" type="button">下一轮 / 再次练习</button><a class="button secondary" href="#/hub">返回 Training Hub</a><a class="button quiet" href="#/history">查看 History</a><a class="button quiet" href="#/coach">前往 AI Coach</a></div></div></section>
             <section class="training-header content-width" aria-labelledby="testTitle">
                 <div><p class="eyebrow">THE TRAINING LAB</p><h1 id="testTitle">Find your precision.</h1><p id="trainingProtocolLabel">恢复冻结实验配置…</p></div>
                 <div class="insights-entry"><button id="openSettings" aria-haspopup="dialog" aria-controls="settingsDialog" class="button secondary" type="button">⚙ Settings</button><button id="openInsights" class="button secondary" type="button" aria-haspopup="dialog" aria-controls="insightsDrawer">✧ AI Insights <span aria-hidden="true">↗</span></button><small id="insightsHint">查看已保存数据与 AI 建议</small></div>
@@ -84,7 +109,7 @@
                 <p id="trainingPlanStatus" role="status">尚无计划。重新推荐保留旧计划与证据。</p>
                 <pre id="trainingPlanResult"></pre>
             </section>
-            <section class="content-width scenario-library"><h2>Scenario Library</h2><p>选择场景后显式创建实验。当前实验未结束时，请先使用“结束当前实验”。</p>
+            <section id="scenarioConfigPanel" class="content-width scenario-library"><h2>Scenario Library</h2><p>选择场景后显式创建实验。当前实验未结束时，请先使用“结束当前实验”。</p>
 <label>场景 <select id="scenarioSelect"><option value="legacy">Original Flick · 原实验</option></select></label>
 <label>难度 <select id="scenarioDifficulty"><option>easy</option><option selected>normal</option><option>hard</option></select></label>
 <label>种子 <input id="scenarioSeed" type="number" min="0" max="2147483647" value="1"></label>
@@ -127,22 +152,22 @@
         </div>
         <div class="drawer-footer"><span class="status-dot"></span> SAVED DATA → ANALYSIS → TOOL CALLING</div>
     </dialog>
-    <dialog id="settingsDialog" aria-labelledby="settingsTitle"><h2 id="settingsTitle">Experiment Settings</h2>
+    <dialog id="settingsDialog" aria-labelledby="settingsTitle"><h2 id="settingsTitle">Settings &amp; Preferences</h2>
     <p>仅用于下一次新实验；已有实验配置保持不变。保存设置后的新实验使用所选单一倍率；旧三档实验保留。灵敏度仅为应用内部指针倍率，不与 FPS 游戏等价。</p>
-    <form id="settingsForm"><fieldset><legend>操作与视觉（下一实验）</legend>
+    <form id="settingsForm"><fieldset><legend>Controls</legend><label>虚拟指针倍率（0.1–5）<input name="sensitivity" type="number" min="0.1" max="5" step="0.1" required></label><p>原 Flick 使用 Pointer Lock 和内部倍率。新场景使用普通指针倍率1；不与 FPS 游戏灵敏度等价。</p></fieldset><fieldset><legend>Crosshair &amp; Appearance</legend>
 <label>准心 <select name="crosshair_type"><option>Circle</option><option>Cross</option><option>Dot</option></select></label>
 <label>准心颜色 <input name="crosshair_color" type="color"></label><label>大小 <input name="crosshair_size" type="number" min="4" max="40" required></label>
 <label>粗细 <input name="crosshair_thickness" type="number" min="1" max="8" required></label><label>目标颜色 <input name="target_color" type="color"></label>
 <label>背景 <select name="background"><option value="dark">Dark</option><option value="slate">Slate</option><option value="midnight">Midnight</option></select></label>
 <label><input name="hit_sound" type="checkbox">命中音效</label><label><input name="hit_feedback" type="checkbox">命中反馈</label><label><input name="miss_feedback" type="checkbox">未命中反馈</label></fieldset>
-<fieldset><legend>实验配置（目标半径固定25px，不新增难度设置）</legend>
+<fieldset><legend>Experiment · Original Flick</legend><p>原训练目标半径25px。新场景的难度与参数在 Training Hub 配置，计划参数在接受时冻结。</p>
 <label>每 Session 时间上限（秒；0不限）<input name="time_limit_seconds" type="number" min="0" max="3600" required></label>
 <label>开始倒计时（秒）<input name="countdown_seconds" type="number" min="0" max="10" required></label>
     <label>Sessions per Experiment <input name="sessions" type="number" min="1" max="30" required></label>
     <label>Attempts per Session <input name="attempts" type="number" min="1" max="100" required></label>
-    <label>Pointer multiplier <input name="sensitivity" type="number" min="0.1" max="5" step="0.1" required></label>
-    </fieldset><button type="submit">保存偏好</button><button id="closeSettings" type="button">关闭</button><p id="settingsStatus" role="status"></p>
+    </fieldset><button type="submit">保存偏好</button><button id="resetSettings" type="button">恢复默认值</button><button id="closeSettings" type="button">关闭</button><p id="settingsStatus" role="status"></p>
     </form></dialog>
-    <script type="module" src="./app.js?v=phase3-training-1"></script>
+    <dialog id="arenaConfirm" aria-labelledby="arenaConfirmTitle"><h2 id="arenaConfirmTitle">确认训练操作</h2><p id="arenaConfirmMessage"></p><div class="summary-actions"><button id="arenaConfirmCancel" class="button secondary" type="button">取消 · 保持暂停</button><button id="arenaConfirmAccept" class="button danger" type="button">确认继续</button></div></dialog>
+    <script type="module" src="./app.js?v=phase4-navigation-3"></script>
 </body>
 </html>

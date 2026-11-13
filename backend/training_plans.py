@@ -47,6 +47,16 @@ def get_plan(plan_id):
         return _view(_read(connection, plan_id))
 
 
+def list_plans(limit=20):
+    if type(limit) is not int or not 1 <= limit <= 50:
+        raise ValueError("Invalid plan history limit.")
+    with closing(store._connect()) as connection:
+        # History needs plan identity and outcomes, not repeated baseline payloads.
+        plans = [_view(row) for row in connection.execute("SELECT * FROM training_plans ORDER BY created_at DESC,rowid DESC LIMIT ?",(limit,))]
+        return [{key:plan[key] for key in ("plan_id","created_at","plan_status","scenario_id","sessions",
+                "task_parameters","experiment_id","evaluation")} for plan in plans]
+
+
 def create_plan(request):
     if not request.goal.strip():
         raise ValueError("Goal must not be blank.")

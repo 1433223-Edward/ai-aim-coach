@@ -605,3 +605,13 @@ Test 页 Personalized Training Plan 通过原 Tool Calling Runtime 查询有界�
 所有趋势、参数选择和训练效果评估由 Python 确定性计算；模型输出必须原样引用已验证工具计划。新建 `training_plans` 元数据表，旧评分定义与历史训练记录不变。效果评估至少需要3条推荐前、2条执行后的同条件有效数据；变化不构成因果证明。历史请求先按日期/场景限定范围，再最多读取100条，工具单次最多返回50条，旧 Flick 指标可查询但不与场景成绩混合比较。
 
 运行 `python -B scripts/run_checks.py` 进行离线回归；`python -B scripts/check_phase3_training.py` 使用明确标识的 Fake Client、合成数据、临时 SQLite 和真实本地 HTTP 验证计划/执行/评估/重启流程，不调用真实模型。详见 [Phase 3 report](docs/phase3/PHASE3_REPORT.md) 与 [合成测试完整示例](docs/phase3/demo-example.json)。
+
+## Phase 4 Workspace & Focus Mode
+
+入口：`http://127.0.0.1:8012/#/hub`。Training Hub 选择任务和查看最近/同条件最佳；Aim Arena (`#/arena`，兼容 `#/test`) 负责实际训练；AI Coach (`#/coach`) 审阅、确认和评估计划；History (`#/history`) 提供真实历史、同条件图表和 Session 详情。
+
+Arena 采用固定64px HUD + 剩余坐标区域 + 64px控制栏，在桌面视口下不靠裁切页面消除滚动。进入 ACTIVE 后只保留任务/进度/计时、准心目标、暂停和退出；暂停、结束、Summary 都不改变坐标区域尺寸。P / Esc 暂停，E 进入退出确认；失焦暂停计时与采样，resize 归档未完成。Settings 作为内部可滚动 Drawer，仅保存下一实验偏好。自由场景现在会冻结这些视觉偏好；任务数量与时长仍由场景或已接受计划决定。
+
+首次加载新布局时，旧活动实验的冻结尺寸可能不同。请在 Hub 明确结束旧实验（历史保留），再创建新训练；不会缩放旧证据或重写已有成绩。历史图表按完整 condition key、难度、评分版本和 viewport 分组，不进行跨条件排名。没有足够数据时显示 Empty State 或样本不足。
+
+完整交付、浏览器测量和限制见 [Phase 4 report](docs/phase4/PHASE4_REPORT.md)；人工验收见 [Final acceptance checklist](docs/phase4/USER_ACCEPTANCE_CHECKLIST.md)。备份位于 `data/backups/`，已从 Git 排除。真实模型请求仍由用户主动触发；本轮测试只使用 Fake Client。

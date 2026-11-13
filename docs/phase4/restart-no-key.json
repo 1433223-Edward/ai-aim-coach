@@ -1,0 +1,11 @@
+{
+  "source": "ISOLATED TEST DB / NO REAL KEY",
+  "process_restart": true,
+  "saved_session_count": 10,
+  "session_ids_preserved": true,
+  "plan_count": 2,
+  "no_key_status": 503,
+  "no_key_error": "model_unavailable",
+  "no_fake_fallback": true,
+  "plan_count_unchanged": true
+}

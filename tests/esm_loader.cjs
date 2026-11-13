@@ -19,7 +19,8 @@ async function loadModule(name, context, rootSource) {
     }
     const module = create(path.join(root, name), rootSource);
     function linker(specifier, parent) {
-        const filename = path.resolve(path.dirname(parent.identifier), specifier);
+        // Cache-busting URLs still resolve to the same source file on the static server.
+        const filename = path.resolve(path.dirname(parent.identifier), specifier.split(/[?#]/, 1)[0]);
         if (!filename.startsWith(root + path.sep)) throw new Error("Unexpected non-local module");
         return create(filename);
     }

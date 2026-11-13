@@ -1,0 +1,137 @@
+INFO:     127.0.0.1:62149 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62150 - "GET /scenarios HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62151 - "GET /training-plans?limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57268 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53762 - "GET /experiments/fb655ce9-6816-4795-a81f-712b06df7c4a HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53762 - "GET / HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53762 - "GET /workspace.css?v=phase4-1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59899 - "GET /style.css?v=phase2-scenarios-1 HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:61468 - "GET /app.js?v=phase4-workspace-1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61468 - "GET /scenario_ui.js HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53762 - "GET /workspace.js HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59899 - "GET /training_plans.js HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61787 - "GET /settings.js HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62067 - "GET /training_ui.js HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61787 - "GET /scenario_motion.js HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:62067 - "GET /history_views.js HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62067 - "GET /trainer.js HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62067 - "GET /experiments/fb655ce9-6816-4795-a81f-712b06df7c4a HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62067 - "GET /scenarios HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50660 - "GET /experiments/fb655ce9-6816-4795-a81f-712b06df7c4a HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54486 - "GET / HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:49592 - "GET / HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:49592 - "GET / HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:58316 - "GET / HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:58316 - "GET /experiments/fdea29d0-9526-497c-99b8-c3edbcb9e73d HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58316 - "GET / HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:58316 - "GET /settings.js HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50660 - "GET /training_ui.js HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50660 - "GET /history_views.js HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:50660 - "GET /trainer.js HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50660 - "GET /experiments/fdea29d0-9526-497c-99b8-c3edbcb9e73d HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50660 - "GET /scenarios HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50660 - "GET /experiments/fdea29d0-9526-497c-99b8-c3edbcb9e73d HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50660 - "GET /experiments/fdea29d0-9526-497c-99b8-c3edbcb9e73d HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59673 - "GET / HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:58519 - "GET /app.js?v=phase4-workspace-1 HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:59673 - "GET /workspace.css?v=phase4-1 HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:58519 - "GET /training_plans.js HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:59673 - "GET /scenario_ui.js HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:59612 - "GET /settings.js HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:61558 - "GET /workspace.js HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:61558 - "GET /history_views.js HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:50776 - "GET / HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:50776 - "GET /training_ui.js HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:50776 - "GET / HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50776 - "GET /app.js?v=phase4-navigation-2 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59994 - "GET / HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:59994 - "GET /app.js?v=phase4-navigation-2 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59994 - "GET /history_views.js HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:58649 - "GET / HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:58649 - "GET /style.css?v=phase2-scenarios-1 HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:58649 - "GET /workspace.css?v=phase4-1 HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:59031 - "GET /app.js?v=phase4-navigation-2 HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:59031 - "GET /scenario_ui.js HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:58649 - "GET /training_plans.js HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:60832 - "GET /settings.js HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:63170 - "GET /training_ui.js HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:58507 - "GET /workspace.js HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:63170 - "GET /history_views.js HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:58507 - "GET /scenario_motion.js HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:55333 - "GET / HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55333 - "GET /app.js?v=phase4-navigation-3 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55333 - "GET /navigation.js?v=phase4-routes-1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55333 - "GET /scenarios HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52261 - "GET /scenarios/sessions?limit=500 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60079 - "GET /training-plans?limit=20 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60079 - "GET /trainer.js HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:52261 - "GET /history/experiments?limit=100 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60079 - "GET /history/sessions?limit=100 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60079 - "GET /experiments/current HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60079 - "GET /scenarios HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54188 - "GET /scenarios HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63906 - "GET /training-plans?limit=20 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64687 - "GET /scenarios/sessions?limit=500 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63906 - "GET /history/experiments?limit=100 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64687 - "GET /history/sessions?limit=100 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64687 - "GET /scenarios HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63906 - "GET /scenarios/sessions?limit=500 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54188 - "GET /training-plans?limit=20 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63906 - "GET /history/experiments?limit=100 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54188 - "GET /history/sessions?limit=100 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54188 - "GET /scenarios HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64687 - "GET /training-plans?limit=20 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63906 - "GET /scenarios/sessions?limit=500 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64687 - "GET /history/experiments?limit=100 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63906 - "GET /history/sessions?limit=100 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55996 - "GET / HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:55996 - "GET /style.css?v=phase2-scenarios-1 HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:60920 - "GET /workspace.css?v=phase4-1 HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:52913 - "GET /app.js?v=phase4-navigation-3 HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:52913 - "GET /scenario_ui.js HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:60920 - "GET /training_plans.js HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:55996 - "GET /settings.js HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:63836 - "GET /training_ui.js HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:52259 - "GET /workspace.js HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:63836 - "GET /history_views.js HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:52259 - "GET /scenario_motion.js HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:52259 - "GET /trainer.js HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:52259 - "GET /experiments/fb655ce9-6816-4795-a81f-712b06df7c4a HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52259 - "GET /scenarios HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52259 - "GET /experiments/fb655ce9-6816-4795-a81f-712b06df7c4a HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52259 - "GET /scenarios HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55996 - "GET /training-plans?limit=20 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63836 - "GET /scenarios/sessions?limit=500 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55996 - "GET /history/experiments?limit=100 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63836 - "GET /history/sessions?limit=100 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63836 - "GET /scenarios HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55996 - "GET /scenarios/sessions?limit=500 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52259 - "GET /training-plans?limit=20 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55996 - "GET /history/experiments?limit=100 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52259 - "GET /history/sessions?limit=100 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52259 - "GET /scenarios HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55996 - "GET /scenarios/sessions?limit=500 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63836 - "GET /training-plans?limit=20 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55996 - "GET /history/experiments?limit=100 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63836 - "GET /history/sessions?limit=100 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57475 - "GET /scenarios HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63803 - "GET /scenarios/sessions?limit=500 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52386 - "GET /training-plans?limit=20 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63803 - "GET /history/experiments?limit=100 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52386 - "GET /history/sessions?limit=100 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55933 - "GET /experiments/fb655ce9-6816-4795-a81f-712b06df7c4a HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55933 - "GET /scenarios HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64971 - "GET /scenarios/sessions?limit=500 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59756 - "GET /training-plans?limit=20 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64971 - "GET /history/experiments?limit=100 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59756 - "GET /history/sessions?limit=100 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53616 - "GET /experiments/fb655ce9-6816-4795-a81f-712b06df7c4a HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60587 - "GET /experiments/fb655ce9-6816-4795-a81f-712b06df7c4a HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58718 - "GET /scenarios HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56999 - "GET /scenarios/sessions?limit=500 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64478 - "GET /training-plans?limit=20 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56999 - "GET /history/experiments?limit=100 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64478 - "GET /history/sessions?limit=100 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62629 - "POST /scenarios/experiments HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50662 - "POST /scenarios/sessions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50662 - "GET /experiments/51b3966b-4a1e-413a-a711-d2b428df6180 HTTP/1.1" 200 OK

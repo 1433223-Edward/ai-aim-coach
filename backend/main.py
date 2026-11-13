@@ -577,6 +577,7 @@ class ScenarioStart(BaseModel):
     trainer_width:int=Field(ge=100,le=10000)
     trainer_height:int=Field(ge=100,le=10000)
     scenario:ScenarioConfig
+    preferences:ExperimentSettings | None = None
 
 @app.get("/scenarios")
 def list_scenarios():return scenario_registry()
@@ -587,8 +588,11 @@ def start_scenario(request:ScenarioStart):
     from analysis.scenarios import snapshot,target_at
     try:target_at(snapshot(config),request.trainer_width,request.trainer_height,0)
     except ValueError:raise HTTPException(422,"Viewport too small for the selected difficulty.") from None
-    state=get_or_create_experiment(request.trainer_width,request.trainer_height,
-        {"sessions":1,"attempts":config["target_count"] if snapshot(config)["category"]=="static" else 1,"sensitivity":1.0},config)
+    # Carry user appearance into a new free-training snapshot without overriding scenario-owned counts or clocks.
+    settings=request.preferences.model_dump() if request.preferences else {}
+    settings.update(sessions=1,attempts=config["target_count"] if snapshot(config)["category"]=="static" else 1,
+                    sensitivity=1.0,time_limit_seconds=0,countdown_seconds=0)
+    state=get_or_create_experiment(request.trainer_width,request.trainer_height,settings,config)
     if state["protocol"].get("scenario")!=snapshot(config):raise HTTPException(409,"End the current experiment explicitly before changing scenarios.")
     # A restored experiment keeps its viewport; do not collect evidence that cannot be saved.
     if (state["protocol"]["trainer_width"],state["protocol"]["trainer_height"])!=(request.trainer_width,request.trainer_height):
@@ -609,8 +613,18 @@ def scenario_history(limit:int=Query(50,ge=1,le=500)):
     from contextlib import closing
     from backend import session_store as store
     with closing(store._connect()) as connection:
-        return [{"session_id":row["session_id"],"experiment_id":row["experiment_id"],"scenario_id":row["scenario_id"],"status":row["status"],"result":json.loads(row["result_json"])}
-            for row in connection.execute("SELECT * FROM scenario_sessions ORDER BY saved_at DESC,rowid DESC LIMIT ?",(limit,))]
+        records=[]
+        for row in connection.execute("SELECT * FROM scenario_sessions ORDER BY saved_at DESC,rowid DESC LIMIT ?",(limit,)):
+            record={key:row[key] for key in ("session_id","experiment_id","scenario_id","status")}
+            try:
+                raw=json.loads(row["raw_data"])
+                record.update(result=json.loads(row["result_json"]),parameters=raw["scenarioSnapshot"],
+                              viewport=[raw["trainerWidth"],raw["trainerHeight"]],started_at=raw["startedAt"])
+            except (ValueError,TypeError,KeyError):
+                # A damaged row remains visible without blocking every other history card.
+                record.update(status="abnormal",result=None,error="Stored scenario evidence is invalid.")
+            records.append(record)
+        return records
 
 from backend import training_plans
 
@@ -639,6 +653,11 @@ def propose_training_plan(request: training_plans.TrainingRequest):
 @app.get("/training-plans/{plan_id}")
 def read_training_plan(plan_id: str):
     return training_action(training_plans.get_plan, plan_id)
+
+
+@app.get("/training-plans")
+def training_plan_history(limit:int=Query(20,ge=1,le=50)):
+    return training_action(training_plans.list_plans,limit)
 
 
 @app.post("/training-plans/{plan_id}/accept")

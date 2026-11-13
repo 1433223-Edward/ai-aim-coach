@@ -1,0 +1,32 @@
+INFO:     127.0.0.1:56573 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56578 - "GET /scenarios HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53616 - "GET / HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53616 - "GET /style.css?v=phase2-scenarios-1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58861 - "GET /app.js?v=phase2-scenarios-1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58861 - "GET /scenario_ui.js HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53616 - "GET /settings.js HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:56834 - "GET /training_ui.js HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58861 - "GET /scenario_motion.js HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58861 - "GET /trainer.js HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58861 - "GET /experiments/current HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58861 - "GET /scenarios HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54398 - "GET /experiments/fdea29d0-9526-497c-99b8-c3edbcb9e73d HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54398 - "GET /experiments/fdea29d0-9526-497c-99b8-c3edbcb9e73d/analysis HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60855 - "GET /experiments/fdea29d0-9526-497c-99b8-c3edbcb9e73d HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52639 - "GET /experiments/fdea29d0-9526-497c-99b8-c3edbcb9e73d HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58467 - "POST /experiments/fdea29d0-9526-497c-99b8-c3edbcb9e73d/end HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62309 - "POST /scenarios/experiments HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49352 - "POST /scenarios/sessions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49352 - "GET /experiments/fb655ce9-6816-4795-a81f-712b06df7c4a HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49457 - "GET /experiments/fb655ce9-6816-4795-a81f-712b06df7c4a HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54209 - "GET /experiments/fb655ce9-6816-4795-a81f-712b06df7c4a HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60221 - "GET /experiments/fb655ce9-6816-4795-a81f-712b06df7c4a HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60221 - "GET / HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60221 - "GET /app.js?v=phase3-training-1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60221 - "GET /training_plans.js HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60043 - "GET /scenario_ui.js HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:60221 - "GET /trainer.js HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:60221 - "GET /experiments/fb655ce9-6816-4795-a81f-712b06df7c4a HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60221 - "GET /scenarios HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60221 - "GET /experiments/fb655ce9-6816-4795-a81f-712b06df7c4a HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60039 - "GET /experiments/fb655ce9-6816-4795-a81f-712b06df7c4a HTTP/1.1" 200 OK

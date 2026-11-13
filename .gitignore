@@ -10,6 +10,7 @@ __pycache__/
 data/aimcoach.db
 data/aimcoach.db-shm
 data/aimcoach.db-wal
+/data/backups/
 
 # IDE
 .vscode/

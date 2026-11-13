@@ -1,0 +1,94 @@
+[
+  {
+    "arena": {
+      "height": 512,
+      "width": 1138
+    },
+    "height": 640,
+    "scrollHeight": 640,
+    "scrollWidth": 1138,
+    "state": "READY",
+    "width": 1138
+  },
+  {
+    "arena": {
+      "height": 512,
+      "width": 1138
+    },
+    "coachVisible": false,
+    "height": 640,
+    "scrollHeight": 640,
+    "scrollWidth": 1138,
+    "state": "ACTIVE",
+    "width": 1138
+  },
+  {
+    "arena": {
+      "height": 640,
+      "width": 1366
+    },
+    "coachVisible": false,
+    "height": 768,
+    "scrollHeight": 768,
+    "scrollWidth": 1366,
+    "state": "ACTIVE",
+    "width": 1366
+  },
+  {
+    "arena": {
+      "height": 772,
+      "width": 1440
+    },
+    "coachVisible": false,
+    "height": 900,
+    "scrollHeight": 900,
+    "scrollWidth": 1440,
+    "state": "ACTIVE",
+    "width": 1440
+  },
+  {
+    "arena": {
+      "height": 952,
+      "width": 1920
+    },
+    "coachVisible": false,
+    "height": 1080,
+    "scrollHeight": 1080,
+    "scrollWidth": 1920,
+    "state": "ACTIVE",
+    "width": 1920
+  },
+  {
+    "arena": {
+      "height": 952,
+      "width": 1920
+    },
+    "drawerHeight": 1080,
+    "drawerScroll": 1410,
+    "height": 1080,
+    "scrollHeight": 1080,
+    "state": "PAUSED_SETTINGS",
+    "time": "9.4s",
+    "width": 1920
+  },
+  {
+    "arena": {
+      "height": 952,
+      "width": 1920
+    },
+    "footer": {
+      "bottom": 1079.9999504089355,
+      "height": 63.9930534362793,
+      "left": 0,
+      "right": 1919.9998779296875,
+      "top": 1016.0068969726562,
+      "width": 1919.9998779296875,
+      "x": 0,
+      "y": 1016.0068969726562
+    },
+    "height": 1080,
+    "scrollHeight": 1080,
+    "state": "NARROW_READY",
+    "width": 1920
+  }
+]

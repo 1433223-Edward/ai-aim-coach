@@ -1,0 +1,158 @@
+{
+  "source": "ISOLATED QA DATABASE / FAKE CLIENT / BROWSER ACTIONS, NOT USER TRAINING",
+  "scenario_ids": [
+    "flick_target",
+    "four_target_switching",
+    "horizontal_tracking",
+    "reactive_tracking",
+    "six_target_precision",
+    "vertical_tracking"
+  ],
+  "saved_sessions": [
+    {
+      "session_id": "5128f096-97ed-4752-85f9-dafc8ba50882",
+      "experiment_id": "a5f32b58-19ec-4aca-a3ad-ecb73bef20bf",
+      "scenario_id": "reactive_tracking",
+      "status": "incomplete",
+      "started_at": "2026-11-05T03:04:19.421Z",
+      "score": 0.0
+    },
+    {
+      "session_id": "cd440ed8-b45f-4e9a-a971-a8429405715a",
+      "experiment_id": "99168822-ec2d-42df-8ab0-32e560852e7a",
+      "scenario_id": "flick_target",
+      "status": "complete",
+      "started_at": "2026-11-05T03:02:01.909Z",
+      "score": 99.59
+    },
+    {
+      "session_id": "90439983-8ff6-4590-bc28-e162c368d524",
+      "experiment_id": "99168822-ec2d-42df-8ab0-32e560852e7a",
+      "scenario_id": "flick_target",
+      "status": "complete",
+      "started_at": "2026-11-05T03:01:59.763Z",
+      "score": 99.89
+    },
+    {
+      "session_id": "618c3d22-1709-4b01-b0b4-653fbc472adf",
+      "experiment_id": "61cdbe53-31ae-454d-a98a-d45ced2acf6d",
+      "scenario_id": "reactive_tracking",
+      "status": "complete",
+      "started_at": "2026-11-05T02:58:18.023Z",
+      "score": 13.14
+    },
+    {
+      "session_id": "b7af72fe-32a2-4d4c-9e0a-02ff7a544d74",
+      "experiment_id": "e04af391-9a0d-4136-a6ce-18249e2890e6",
+      "scenario_id": "vertical_tracking",
+      "status": "complete",
+      "started_at": "2026-11-05T02:57:30.447Z",
+      "score": 5.99
+    },
+    {
+      "session_id": "dc20b63b-1180-4002-a58f-c055ee2d24f9",
+      "experiment_id": "da37c53e-a1cb-404c-8774-714cf35587ca",
+      "scenario_id": "flick_target",
+      "status": "complete",
+      "started_at": "2026-11-05T02:56:05.314Z",
+      "score": 97.71
+    },
+    {
+      "session_id": "007d65ae-75a3-4895-9775-42fa88e188bf",
+      "experiment_id": "86458c6d-e3f6-4c60-bb79-af1fc29fe520",
+      "scenario_id": "horizontal_tracking",
+      "status": "complete",
+      "started_at": "2026-11-05T02:48:12.391Z",
+      "score": 2.36
+    },
+    {
+      "session_id": "929aa07b-08f5-49a1-9ba1-e85660f1c91e",
+      "experiment_id": "20314c41-5720-40ab-a809-812730a94f04",
+      "scenario_id": "six_target_precision",
+      "status": "complete",
+      "started_at": "2026-11-05T02:47:27.029Z",
+      "score": 99.24
+    },
+    {
+      "session_id": "d030aa05-a083-492d-8cdb-651cd64b50ee",
+      "experiment_id": "8e2486db-97a6-49cd-8a4c-642893dd75af",
+      "scenario_id": "four_target_switching",
+      "status": "complete",
+      "started_at": "2026-11-05T02:45:33.269Z",
+      "score": 97.37
+    },
+    {
+      "session_id": "8d2ffcae-ea5e-43d1-878f-b36495b2b996",
+      "experiment_id": "668323da-d03c-4027-b575-23a53eee30b9",
+      "scenario_id": "four_target_switching",
+      "status": "complete",
+      "started_at": "2026-11-05T02:41:11.851Z",
+      "score": 97.1
+    }
+  ],
+  "plans": [
+    {
+      "plan_id": "7ce97e51-a290-4f4a-a53a-23afcae89081",
+      "created_at": "2026-11-05T11:01:40.860717+08:00",
+      "plan_status": "accepted",
+      "scenario_id": "flick_target",
+      "sessions": 2,
+      "task_parameters": {
+        "difficulty": "normal",
+        "direction": "positive",
+        "duration_seconds": 20,
+        "scenario_id": "flick_target",
+        "seed": 1,
+        "speed": 120,
+        "target_count": 5
+      },
+      "experiment_id": "99168822-ec2d-42df-8ab0-32e560852e7a",
+      "evaluation": {
+        "baseline_session_ids": [],
+        "comparison_session_ids": [],
+        "completion_rate": 1.0,
+        "evaluated_at": "2026-11-05T11:03:24.380222+08:00",
+        "execution_session_ids": [
+          "cd440ed8-b45f-4e9a-a971-a8429405715a",
+          "90439983-8ff6-4590-bc28-e162c368d524"
+        ],
+        "experiment_ended": false,
+        "experiment_id": "99168822-ec2d-42df-8ab0-32e560852e7a",
+        "follow_up": "collect_more_same_condition_data",
+        "limitation": "Descriptive before/after comparison; no causal attribution to the AI recommendation.",
+        "metric_delta": null,
+        "plan_id": "7ce97e51-a290-4f4a-a53a-23afcae89081",
+        "recommendation_basis": "insufficient_evidence",
+        "sufficient": false,
+        "target_metric": "accuracy",
+        "target_reached": null,
+        "weak_component_after": null,
+        "weak_component_before": null
+      }
+    },
+    {
+      "plan_id": "9e46b534-90b4-4e3e-8cef-5503da4ed8b8",
+      "created_at": "2026-11-05T11:00:19.752726+08:00",
+      "plan_status": "rejected",
+      "scenario_id": "flick_target",
+      "sessions": 2,
+      "task_parameters": {
+        "difficulty": "normal",
+        "direction": "positive",
+        "duration_seconds": 20,
+        "scenario_id": "flick_target",
+        "seed": 1,
+        "speed": 120,
+        "target_count": 5
+      },
+      "experiment_id": null,
+      "evaluation": null
+    }
+  ],
+  "plan_link_verified": true,
+  "linked_experiment": "99168822-ec2d-42df-8ab0-32e560852e7a",
+  "linked_session_ids": [
+    "cd440ed8-b45f-4e9a-a971-a8429405715a",
+    "90439983-8ff6-4590-bc28-e162c368d524"
+  ]
+}

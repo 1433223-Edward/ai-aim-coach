@@ -50,7 +50,8 @@ let planFailureCode = null;
 let scenarioMode = false;
 let scenarioRunning = false;
 let scenarioPending = false;
-export function setScenarioMode(mode,running=false,pending=false){scenarioMode=mode;scenarioRunning=running;scenarioPending=pending;updateExperimentMessage();}
+let scenarioPaused=false;
+export function setScenarioMode(mode,running=false,pending=false,isPaused=false){scenarioMode=mode;scenarioRunning=running;scenarioPending=pending;scenarioPaused=isPaused;updateExperimentMessage();}
 export function refreshTrainingState(){return refreshExperiment();}
 export function selectScenarioExperiment(state){
     // A successful scenario creation explicitly changes this tab's selected identity.
@@ -98,7 +99,9 @@ const stateListeners = new Set();
 
 // The shell receives copies and cannot mutate the controller's protocol or progress.
 export function getTrainingState() {
-    return {scenarioRunning, paused, countdown, sessionActive, sessionSaving, planBusy, experimentLoading, pointerLockPending,
+    return {scenarioRunning, scenarioPaused, paused, countdown, sessionActive, sessionSaving, planBusy, experimentLoading, pointerLockPending,
+        sessionId:currentSession?.sessionId, sessionStatus:currentSession?.status,sessionOrder:currentSession?.experimentOrder,
+        completedAttempts:currentSession?.attempts.length||0,activeDurationMs:sessionActive?activeMilliseconds():currentSession?.activeDurationMs||0,
         locked: document.pointerLockElement === trainerArea,
         experiment: activeExperiment ? JSON.parse(JSON.stringify(activeExperiment)) : null,
         recommendationEvidence: recommendationEvidence ? JSON.parse(JSON.stringify(recommendationEvidence)) : null,
@@ -215,6 +218,8 @@ async function refreshExperiment({initial = false, startNew = false} = {}) {
             } catch (error) {
                 // Only a fresh installation creates automatically; never replace a missing selected ID.
                 if (initial && !selectedId && error.status === 404) {
+                    // Visiting the Hub must not silently reserve a legacy Experiment before task selection.
+                    if(document.body?.dataset.phase4){activeExperiment=null;experimentError=null;return null;}
                     state = await createExperiment();
                 } else {
                     throw error;
@@ -765,7 +770,7 @@ trainerArea.addEventListener("click", async () => {
     // An unfinished scenario must be ended explicitly before the legacy mode can create a new experiment.
     if(activeExperiment?.protocol.scenario && !experimentFinished){setSaveStatus("请先结束当前场景实验，再进入原训练。");return;}
     // Ignore programmatic clicks when Home is visible; hidden geometry cannot define a protocol.
-    if (trainerArea.closest?.("[hidden]")) return;
+    if (trainerArea.closest?.("[hidden], .parked")) return;
     // Avoid collecting against unfinished saves or a recommendation in progress.
     if (experimentLoading || sessionSaving || planBusy || pointerLockPending || countdown || hasUnconfirmedData()) {
         if (hasUnconfirmedData()) setSaveStatus("请先重试或导出待上传数据；不会创建重复训练条件。");
@@ -774,7 +779,7 @@ trainerArea.addEventListener("click", async () => {
     if (!activeExperiment || experimentFinished) {
         try {
             // Creating a new experiment is explicit; refresh alone keeps the completed evidence.
-            await refreshExperiment({initial: !activeExperiment, startNew: experimentFinished});
+            await refreshExperiment({initial: !activeExperiment, startNew: experimentFinished || !!document.body?.dataset.phase4});
         } catch (error) {
             console.error(error);
         }
@@ -852,7 +857,7 @@ document.addEventListener("pointerlockchange", async () => {
         }
 
         // A late browser lock after leaving Test must never collect against hidden geometry.
-        if (trainerArea.closest?.("[hidden]")) {
+        if (trainerArea.closest?.("[hidden], .parked")) {
             document.exitPointerLock();
             return;
         }
@@ -886,7 +891,10 @@ document.addEventListener("pointerlockchange", async () => {
     } else {
         countdown=false;
         if(pauseRequested && paused){publishState();return;}
-        if(sessionActive){void finishIncomplete("escape");return;}
+        if(sessionActive){
+            if(document.body?.dataset.phase4){pauseTraining();return;}
+            void finishIncomplete("escape");return;
+        }
         target.style.display =
             "none";
 
@@ -1325,9 +1333,9 @@ document.addEventListener("pointerlockerror", () => {
     updateExperimentMessage();
 });
 document.addEventListener("keydown",event=>{
-    if(!sessionActive||event.repeat||event.ctrlKey||event.metaKey||event.altKey)return;
+    if(!sessionActive||event.repeat||event.ctrlKey||event.metaKey||event.altKey||event.target?.closest?.("input,select,textarea,dialog"))return;
     if(event.code==="KeyP"){event.preventDefault();if(paused)trainerArea.click();else pauseTraining();}
-    if(event.code==="KeyE"){event.preventDefault();void finishIncomplete("user_ended");}
+    if(event.code==="KeyE"){event.preventDefault();if(document.body?.dataset.phase4)document.getElementById("arenaExit").click();else void finishIncomplete("user_ended");}
 });
 document.getElementById("pauseTraining").addEventListener("click",()=>{
     if(paused){trainerArea.click();}else pauseTraining();
@@ -1355,13 +1363,20 @@ window.addEventListener("focus", () => {
         void refreshExperiment().catch(console.error);
     }
 });
+// Pause before any browser background interval can enter active training time.
+function suspendBackgroundTraining(){
+    if(sessionActive&&!paused)pauseTraining();
+    if(countdown){countdown=false;document.exitPointerLock();publishState();}
+}
+window.addEventListener("blur",suspendBackgroundTraining);
+document.addEventListener("visibilitychange",()=>{if(document.hidden)suspendBackgroundTraining();});
 
 window.addEventListener("resize", () => {
     // A resized viewport would mix coordinate systems inside the same fixed-size protocol.
     if (sessionActive && (trainerArea.clientWidth !== currentSession.trainerWidth ||
                           trainerArea.clientHeight !== currentSession.trainerHeight)) {
         experimentError = "窗口尺寸已变化；本次未完成 Session 已中止，请恢复实验尺寸后重试。";
-        document.exitPointerLock();
+        void finishIncomplete("viewport_changed");
     }
 });
 

@@ -1,7 +1,7 @@
 import {requestJson} from "./api.js";
 import {readSettings} from "./settings.js";
 
-export function bindTrainingPlans(core, document) {
+export function bindTrainingPlans(core, document, onChange=()=>{}) {
     if (!document.getElementById("trainingPlanPanel")) return;
     const node = id => document.getElementById(id);
     const status = text => {node("trainingPlanStatus").textContent = text;};
@@ -13,6 +13,7 @@ export function bindTrainingPlans(core, document) {
         node("trainingPlanEvaluate").disabled = busy || plan?.plan_status !== "accepted";
         node("trainingPlanRequest").disabled = busy;
         if (!plan) return;
+        onChange(plan);
         const evaluation = plan.evaluation;
         node("trainingPlanResult").textContent = [
             `Plan ${plan.plan_id} · ${plan.plan_status}`,

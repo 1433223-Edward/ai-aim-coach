@@ -1,0 +1,39 @@
+{
+  "backup": "data/backups/before-phase4-20261105-113453.db",
+  "tables": {
+    "sessions": {
+      "before_count": 27,
+      "after_count": 27,
+      "unchanged": true,
+      "sha256": "c78f91dd525f26cb9decfe6a150795a80468aced26b8def9f6ef6462846240da"
+    },
+    "scenario_sessions": {
+      "before_count": 1,
+      "after_count": 1,
+      "unchanged": true,
+      "sha256": "11b0062f3366a2d26f7195ca90343b30fc99405acf67b4a520b265617c1e4764"
+    },
+    "incomplete_sessions": {
+      "before_count": 0,
+      "after_count": 0,
+      "unchanged": true,
+      "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+    },
+    "experiments": {
+      "before_count": 3,
+      "after_count": 3,
+      "unchanged": true,
+      "sha256": "f55760b54dfce9e8970f2791407b1b4f14251a1bd5bddb6b9a5ca9aacf61a17c"
+    },
+    "experiment_endings": {
+      "before_count": 1,
+      "after_count": 1,
+      "unchanged": true,
+      "sha256": "854817ed466549cb92f72b2c7a20195ea0384189b36089cdca659f19caf46f8d"
+    }
+  },
+  "added_tables": [
+    "training_plans"
+  ],
+  "original_rows_unchanged": true
+}

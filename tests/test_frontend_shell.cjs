@@ -20,6 +20,7 @@ function harness() {
         if (!nodes.has(id)) nodes.set(id, {id, textContent: "", value: "goal", hidden: false,
             style: {}, dataset: {}, children: [], attributes: {}, open: false, isConnected: true,
             clientWidth: 800, clientHeight: 600,
+            elements: {namedItem: key => element(`setting-${key}`)},
             setAttribute(name, value) { this.attributes[name] = value; },
             removeAttribute(name) { delete this.attributes[name]; },
             addEventListener: (name, callback) => listen(`${String(id)}:${name}`, callback),
@@ -105,6 +106,16 @@ test("actual app initializes no trainer on Home and reuses one controller across
     let prevented=false;await h.emit("skipContent:click",{preventDefault(){prevented=true;}});
     assert.equal(prevented,true);assert.equal(h.document.activeElement.id,"pageContent");
     assert.equal(h.window.location.hash,"#/test");
+
+    // Exercise the routes through app.js and its versioned router import, not just the router alone.
+    for (const [hash, page] of [["#/hub", "hub"], ["#/coach", "coach"], ["#/history", "history"], ["#/arena", "test"]]) {
+        h.window.location.hash = hash;
+        await h.emit("window:hashchange");
+        for (const name of ["home", "hub", "coach", "history", "test"]) {
+            assert.equal(h.element(`${name}Page`).hidden, name !== page, `Visible page for ${hash}`);
+        }
+    }
+    assert.equal(h.listeners.get("document:mousedown").length,shots);
 });
 
 test("direct Test hash initializes once and blocked navigation restores URL without hiding training", async () => {
@@ -190,8 +201,11 @@ test("Pointer Lock blocks Drawer entry; loading, failure and success do not chan
 
 test("CSS preserves coordinate geometry and reduced motion; HTML loads only one module entry", () => {
     const css=fs.readFileSync(path.join(__dirname,"../frontend/style.css"),"utf8");
+    const workspaceCss=fs.readFileSync(path.join(__dirname,"../frontend/workspace.css"),"utf8");
     const html=fs.readFileSync(path.join(__dirname,"../frontend/index.html"),"utf8");
-    assert.match(css,/#trainer-area\s*\{[^}]*width: 100vw; height: 100vh;/);
+    // Phase 4 intentionally allocates HUD space before freezing the surface, without scaling coordinates.
+    assert.match(workspaceCss,/\.arena-page\s*\{[^}]*height:100dvh;[^}]*grid-template-rows:/);
+    assert.match(workspaceCss,/\.arena-page #trainer-area\s*\{[^}]*width:100%;height:100%;[^}]*border:0;padding:0/);
     assert.match(css,/@media \(prefers-reduced-motion: reduce\)/);
     assert.equal((html.match(/<script /g)||[]).length,1);assert.match(html,/<script type="module" src="\.\/app.js/);
 });

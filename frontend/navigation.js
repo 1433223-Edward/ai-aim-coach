@@ -2,7 +2,10 @@
 export function createNavigation({window, showPage, canNavigate, onBlocked}) {
     let current = null;
     let transitioning = false;
-    const readPage = () => window.location.hash === "#/test" ? "test" : "home";
+    const readPage = () => {
+        const page = window.location.hash.slice(2);
+        return page === "arena" ? "test" : ["test", "hub", "coach", "history"].includes(page) ? page : "home";
+    };
     async function route() {
         const requested = readPage();
         if (current === requested) return;

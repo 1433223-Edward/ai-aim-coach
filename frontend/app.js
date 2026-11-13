@@ -1,15 +1,25 @@
 import {bindScenarioLibrary} from "./scenario_ui.js";
 import {bindTrainingPlans} from "./training_plans.js";
 import {bindSettings} from "./settings.js";
-import {createNavigation} from "./navigation.js";
+// The router must match the route names in this shell, even with older assets cached.
+import {createNavigation} from "./navigation.js?v=phase4-routes-1";
 import {bindTrainingUI} from "./training_ui.js";
 import {bindRecommendationUI} from "./recommendation_ui.js";
+import {createWorkspace} from "./workspace.js";
 
 let trainer = null;
 let trainerPromise = null;
 let drawer = null;
-bindSettings(() => !!trainer && trainer.canLeaveTrainingPage());
 const navigationStatus = document.getElementById("navigationStatus");
+let workspace;
+try {
+    workspace=createWorkspace(document,window);
+    bindSettings(() => workspace?workspace.canOpenSettings():!!trainer&&trainer.canLeaveTrainingPage());
+} catch (error) {
+    // Expose bootstrap failures instead of leaving working-looking links on an inert shell.
+    navigationStatus.textContent = `页面初始化失败：${error.message}。请刷新重试。`;
+    throw error;
+}
 document.getElementById("skipContent").addEventListener("click", (event) => {
     // A content anchor must not replace the Home/Test routing hash.
     event.preventDefault();
@@ -22,8 +32,9 @@ async function initializeTrainer() {
         await module.ready;
         trainer = module;
         bindTrainingUI(trainer, document);
-        bindScenarioLibrary(trainer,document);
-        bindTrainingPlans(trainer,document);
+        const scenarios=bindScenarioLibrary(trainer,document);
+        workspace?.bind(trainer,scenarios);
+        bindTrainingPlans(trainer,document,plan=>workspace?.setPlan(plan));
         drawer = bindRecommendationUI(trainer, document);
         return trainer;
     }).catch((error) => {
@@ -41,14 +52,16 @@ const navigation = createNavigation({
     showPage: async (page) => {
         drawer?.close();
         document.getElementById("homePage").hidden = page !== "home";
-        document.getElementById("testPage").hidden = page !== "test";
+        if(!workspace)document.getElementById("testPage").hidden = page !== "test";
+        for(const key of ["hub","coach","history"])document.getElementById(`${key}Page`).hidden=page!==key;
+        workspace?.setPage(page);
         for (const link of document.querySelectorAll("[data-page]")) {
             if (link.dataset.page === page) link.setAttribute("aria-current", "page");
             else link.removeAttribute("aria-current");
         }
         navigationStatus.textContent = "";
         window.scrollTo?.({top: 0, behavior: "instant"});
-        if (page === "test") await initializeTrainer();
+        if (page !== "home") await initializeTrainer();
     },
 });
 void navigation.start().catch(console.error);

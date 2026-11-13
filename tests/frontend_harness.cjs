@@ -109,6 +109,7 @@ async function boot(server, tabStorage = new Map()) {
         return elements.get(id);
     }
     const document = {
+        body: {dataset: {phase4: server.phase4 ? "true" : ""}},
         pointerLockElement: null, getElementById: element, createElement: () => ({click() { downloads++; }}),
         addEventListener: (type, fn) => listen(handlers, type, fn),
         exitPointerLock() {

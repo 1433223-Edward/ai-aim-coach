@@ -1,0 +1,10 @@
+(node:38564) ExperimentalWarning: VM Modules is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+PASS four_target_switching: shipped handlers -> HTTP -> SQLite -> history; replay 200 / changed payload 409
+PASS six_target_precision: shipped handlers -> HTTP -> SQLite -> history; replay 200 / changed payload 409
+PASS horizontal_tracking: shipped handlers -> HTTP -> SQLite -> history; replay 200 / changed payload 409
+PASS vertical_tracking: shipped handlers -> HTTP -> SQLite -> history; replay 200 / changed payload 409
+PASS flick_target: shipped handlers -> HTTP -> SQLite -> history; replay 200 / changed payload 409
+PASS reactive_tracking: shipped handlers -> HTTP -> SQLite -> history; replay 200 / changed payload 409
+PASS restart: all six Sessions and scores persisted; experiment counts verified
+Disposable SQLite: C:\Users\13626\AppData\Local\Temp\aimcoach-phase2-zqhLiZ\training.db

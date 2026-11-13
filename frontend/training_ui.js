@@ -8,7 +8,7 @@ export function bindTrainingUI(core, document) {
             : "等待服务端冻结配置";
         document.getElementById("pauseTraining").disabled=!state.sessionActive;
         document.getElementById("endTraining").disabled=!state.sessionActive;
-        document.getElementById("openSettings").disabled=!!(state.scenarioRunning||state.locked||state.sessionActive||state.pointerLockPending||state.countdown);
+        document.getElementById("openSettings").disabled=!!((state.scenarioRunning&&!state.scenarioPaused)||state.locked||(state.sessionActive&&!state.paused)||state.pointerLockPending||state.countdown);
         document.getElementById("experimentIdentity").textContent = experiment?.experiment_id || "等待服务端实验";
         document.getElementById("sessionProgress").textContent = experiment
             ? `${experiment.completed_count} / ${experiment.schedule.length}` : "— / —";

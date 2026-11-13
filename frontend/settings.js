@@ -20,13 +20,24 @@ export function readSettings() {
 }
 export function bindSettings(canOpen) {
     const dialog=document.getElementById("settingsDialog"),form=document.getElementById("settingsForm");
-    document.getElementById("openSettings").addEventListener("click",()=>{
-        if (!canOpen()) return;
-        const settings=readSettings()||DEFAULT_SETTINGS;
+    function fill(settings){
         for(const [key,value] of Object.entries(settings)) {
             const input=form.elements.namedItem(key);
             if(input.type==="checkbox")input.checked=value;else input.value=value;
         }
+    }
+    // Reset edits the preference form only; an active Experiment retains its frozen settings.
+    document.getElementById("resetSettings")?.addEventListener("click",()=>{
+        fill(DEFAULT_SETTINGS);document.getElementById("settingsStatus").textContent="默认值已填入；点击保存偏好后生效，当前实验不变。";
+    });
+    for(const [key,[min,max]] of Object.entries(ranges)) {
+        const input=form.elements.namedItem(key),label=input.closest?.("label");
+        if(label){const help=document.createElement("small");help.textContent=`合法范围 ${min}–${max}`;label.append(help);}
+    }
+    document.getElementById("openSettings").addEventListener("click",()=>{
+        if (!canOpen()) return;
+        const settings=readSettings()||DEFAULT_SETTINGS;
+        fill(settings);
         document.getElementById("settingsStatus").textContent="设置仅在新实验创建时冻结；当前实验不变。";
         dialog.showModal();
     });
